@@ -150,7 +150,7 @@
                                         allowClear: true,
                                         placeholder: '${message(code:"listDocuments.js.placeholder.package")}',
                                         debug: true,
-                                        tags: true,
+                                        tags: false,
                                         templateSelection: function (data) {
                                             // Add custom attributes to the <option> tag for the selected option
                                             $(data.element).attr('value', data.findFilter);
