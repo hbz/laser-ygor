@@ -221,6 +221,7 @@
                                     $('#pkgCuratoryGroup').select2({
                                         allowClear: true,
                                         placeholder: '${message(code:"listDocuments.js.placeholder.curatorygroup")}',
+                                        tags: false,
                                         debug: true,
                                         templateSelection: function (data) {
                                             // Add custom attributes to the <option> tag for the selected option

@@ -23,6 +23,7 @@ class EnrichmentController implements ControllersHelper{
   EnrichmentService enrichmentService
   GokbService gokbService
   KbartReader kbartReader
+  def allCuratoryGroups
 
   def index = {
     redirect(action: 'process')
@@ -33,7 +34,7 @@ class EnrichmentController implements ControllersHelper{
     SessionService.setSessionDuration(request, 3600)
     def namespace_list = gokbService.getNamespaceList(grailsApplication.config.gokbApi.namespaceCategory)
     def namespace_doi_list = []
-    def gokb_cgs = gokbService.getCurrentCuratoryGroupsList()
+    allCuratoryGroups = gokbService.getCurrentCuratoryGroupsList()
     namespace_doi_list.addAll(namespace_list)
     namespace_doi_list  << [id: 'doi', text: 'doi']
     Enrichment en = getCurrentEnrichment()
@@ -49,7 +50,7 @@ class EnrichmentController implements ControllersHelper{
             gokbService       : gokbService,
             pkg_namespaces    : namespace_list,
             record_namespaces : namespace_doi_list,
-            curatoryGroups    : gokb_cgs,
+            curatoryGroups    : allCuratoryGroups,
             currentView       : 'process'
         ]
     )
@@ -109,7 +110,6 @@ class EnrichmentController implements ControllersHelper{
       // the file form is unpopulated but the previously selected file is unchanged
       file = request.session.lastUpdate.file
     }
-
     String encoding = enrichmentService.getEncoding(file.getInputStream(), null)
     if (encoding && encoding != "UTF-8"){
       flash.info = null
@@ -127,10 +127,8 @@ class EnrichmentController implements ControllersHelper{
       )
       return
     }
-
     def addOnly = false
     setInputFieldDataToLastUpdate(file, null, addOnly)
-
     if (file.empty){
       flash.info = null
       flash.warning = null
@@ -175,7 +173,6 @@ class EnrichmentController implements ControllersHelper{
       flash.warning = null
       flash.error = ype.getMessage()
       Enrichment enrichment = getCurrentEnrichment()
-
       render(
           view: 'process',
           params: [
@@ -251,7 +248,6 @@ class EnrichmentController implements ControllersHelper{
     }
     enrichment.addFileAndFormat()
     enrichment.status = Enrichment.ProcessingState.PREPARE_1
-
     redirect(
         action: 'process',
         params: [
@@ -478,9 +474,11 @@ class EnrichmentController implements ControllersHelper{
   def ajaxGetCuratoryGroups = {
     def result = [:]
     result["items"] = []
-    for (def curatoryGroup in gokbService.getCurrentCuratoryGroupsList()){
-      curatoryGroup.id = curatoryGroup.get("text")
-      result["items"] << curatoryGroup
+    for (def curatoryGroup in allCuratoryGroups){
+      if (StringUtils.isEmpty(params.q) || curatoryGroup.get("text").toLowerCase().contains(params.q.toLowerCase())){
+        curatoryGroup.id = curatoryGroup.get("text")
+        result["items"] << curatoryGroup
+      }
     }
     render result as JSON
   }
