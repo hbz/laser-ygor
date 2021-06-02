@@ -276,7 +276,7 @@
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
       "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "ok"}],
-      "missing" : [{"serial" : "ok", "monograph" : "warning", "other" : "ok"}],
+      "missing" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
       "undefined" : [{"serial" : "warning", "monograph" : "warning", "other" : "ok"}]
     }
   },
@@ -431,6 +431,8 @@
     },
     "order" : ["kbart", "zdb"],
     "type" : "Abbreviation",
+    "lengthmax" : 3,
+    "lengthmin" : 3,
     "multivalue" : "true",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
