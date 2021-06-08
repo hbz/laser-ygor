@@ -468,6 +468,7 @@ class EnrichmentController implements ControllersHelper{
         }
       }
     }
+    return null
   }
 
 
