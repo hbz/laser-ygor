@@ -6,6 +6,7 @@ import de.hbznrw.ygor.processing.YgorFeedback
 import de.hbznrw.ygor.readers.KbartFromUrlReader
 import de.hbznrw.ygor.readers.KbartReader
 import grails.converters.JSON
+import grails.util.Holders
 import groovy.util.logging.Log4j
 import org.apache.commons.collections.MapUtils
 import org.apache.commons.io.FileUtils
@@ -330,7 +331,6 @@ class EnrichmentController implements ControllersHelper{
         .concat(File.separator).concat(UUID.randomUUID().toString())
     Map<String, String> result = [:]
     List<String> missingParams = []
-    String attachedFilePath = null
     CommonsMultipartFile mpFile = params.localFile ? request.getFile('uploadFile') : null
     String addOnly = params.addOnly ?: 'false'
     String pkgId = params.get('pkgId')
@@ -448,27 +448,20 @@ class EnrichmentController implements ControllersHelper{
     }
   }
 
+
   private String getTippNamespace(Map<String, Object> pkg){
-    List<Object> allTitleIdNamespaces = gokbService.getNamespaceList(grailsApplication.config.gokbApi.namespaceCategory)
-    List<String> allTitleIdNamespacesValues = []
-    for (def namespace in allTitleIdNamespaces){
-      if (!StringUtils.isEmpty(namespace.id)){
-        allTitleIdNamespacesValues.add(namespace.id)
-      }
+    String result = null
+    String platformUuid = pkg?.nominalPlatform?.uuid
+    if (StringUtils.isEmpty(platformUuid)){
+      return result
     }
-    List<Object> tippContent = enrichmentService.getTippsOfPackage(pkg.uuid, 10000)?.records
-    if (tippContent != null){
-      for (def tipp in tippContent){
-        if (tipp.identifiers != null){
-          for (def identifier in tipp.identifiers){
-            if (identifier.namespace in allTitleIdNamespacesValues){
-              return identifier.namespace
-            }
-          }
-        }
-      }
+    def platformQueryUri = Holders.config.gokbApi.xrFindUriStub.toString()
+        .concat("?componentType=Platform&uuid=${platformUuid}")
+    def platform = EnrichmentService.gokbRestApiRequest(platformQueryUri, null, null, null)
+    if (platform?.records){
+      result = platform.records[0]?.name
     }
-    return null
+    return result
   }
 
 

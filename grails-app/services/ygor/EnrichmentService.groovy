@@ -141,7 +141,7 @@ class EnrichmentService{
   /**
    * @param resultFields Optional. All fields are returned if left empty.
    */
-  Map<String, Object> gokbRestApiRequest(@Nonnull String uri, String user, String password, List<String> resultFields){
+  static Map<String, Object> gokbRestApiRequest(@Nonnull String uri, String user, String password, List<String> resultFields){
     if (StringUtils.isEmpty(uri)){
       return null
     }
