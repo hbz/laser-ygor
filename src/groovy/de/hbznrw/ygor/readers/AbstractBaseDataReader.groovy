@@ -8,6 +8,8 @@ import java.time.LocalDate
  */
 abstract class AbstractBaseDataReader{
 
+  String dataFileName
+
   abstract Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged)
 
   abstract void checkFields() throws Exception

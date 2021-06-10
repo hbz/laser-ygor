@@ -4,6 +4,7 @@ import de.hbznrw.ygor.export.structure.Pod
 import de.hbznrw.ygor.processing.SendPackageThreadGokb
 import de.hbznrw.ygor.processing.UploadThreadGokb
 import de.hbznrw.ygor.processing.YgorFeedback
+import de.hbznrw.ygor.readers.AbstractBaseDataReader
 import de.hbznrw.ygor.readers.KbartFromUrlReader
 import de.hbznrw.ygor.readers.KbartReader
 import grails.util.Holders
@@ -24,7 +25,7 @@ import de.hbznrw.ygor.tools.*
 class EnrichmentService{
 
   GokbService gokbService
-  KbartReader kbartReader
+  AbstractBaseDataReader baseDataReader
   static Map<String, UploadJob> UPLOAD_JOBS = new HashMap<>()
 
 
@@ -356,7 +357,7 @@ class EnrichmentService{
     try{
       String urlString = StringUtils.isEmpty(enrichment.updateUrl) ? enrichment.originUrl : enrichment.updateUrl
       URL originUrl = new URL(urlString)
-      kbartReader = new KbartFromUrlReader(originUrl, enrichment.sessionFolder, LocaleUtils.toLocale(enrichment.locale),
+      baseDataReader = new KbartFromUrlReader(originUrl, enrichment.sessionFolder, LocaleUtils.toLocale(enrichment.locale),
           ygorFeedback)
       enrichment.dataContainer.records = []
       new File(enrichment.enrichmentFolder).mkdirs()
@@ -391,7 +392,7 @@ class EnrichmentService{
         'ygorVersion'    : Holders.config.ygor.version,
         'ygorType'       : Holders.config.ygor.type
     ]
-    enrichment.process(options, kbartReader, ygorFeedback)
+    enrichment.process(options, baseDataReader, ygorFeedback)
     while (enrichment.status in [Enrichment.ProcessingState.PREPARE_1, Enrichment.ProcessingState.PREPARE_2,
                                  Enrichment.ProcessingState.WORKING, null]){
       Thread.sleep(1000)
@@ -500,12 +501,12 @@ class EnrichmentService{
   }
 
 
-  Enrichment setupEnrichment(Enrichment enrichment, KbartReader kbartReader, String addOnly, def pmOptions,
+  Enrichment setupEnrichment(Enrichment enrichment, AbstractBaseDataReader baseDataReader, String addOnly, def pmOptions,
                              String platformName, String platformUrl, def params, def titleIdNamespace,
                              String pkgTitle, String pkgCuratoryGroup, String pkgId, String pkgNominalPlatform,
                              String pkgNominalProvider, String updateToken, String uuid, String lastUpdated,
                              boolean ignoreLastChanged){
-    kbartReader.checkFields()
+    baseDataReader.checkFields()
     Map<String, Object> parameterMap = new HashMap<>()
     parameterMap.putAll(params)
     parameterMap.put("pkgTitleId", [titleIdNamespace])

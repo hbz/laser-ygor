@@ -1,5 +1,6 @@
 package de.hbznrw.ygor.processing
 
+import de.hbznrw.ygor.readers.AbstractBaseDataReader
 import de.hbznrw.ygor.readers.KbartFromUrlReader
 import de.hbznrw.ygor.readers.KbartReader
 import de.hbznrw.ygor.tools.UrlToolkit
@@ -16,7 +17,7 @@ import ygor.field.MappingsContainer
 class CompleteProcessingThread extends Thread {
 
   EnrichmentService enrichmentService
-  KbartReader kbartReader
+  AbstractBaseDataReader baseDataReader
   Map<String, Object> pkg
   Map<String, Object> src
   String token
@@ -28,15 +29,15 @@ class CompleteProcessingThread extends Thread {
 
   /**
    * used by EnrichmentController.processGokbPackage()
-   * @param kbartReader
+   * @param baseDataReader
    * @param pkg
    * @param src
    * @param token
    */
-  CompleteProcessingThread(KbartReader kbartReader, Map<String, Object> pkg, Map<String, Object> src, String token,
-      UploadJobFrame uploadJobFrame, File file, def addOnly, boolean ignoreLastChanged){
+  CompleteProcessingThread(AbstractBaseDataReader baseDataReader, Map<String, Object> pkg, Map<String, Object> src,
+                           String token, UploadJobFrame uploadJobFrame, File file, def addOnly, boolean ignoreLastChanged){
     enrichmentService = new EnrichmentService()
-    this.kbartReader = kbartReader
+    this.baseDataReader = baseDataReader
     this.pkg = pkg
     this.src = src
     this.token = token
@@ -77,7 +78,7 @@ class CompleteProcessingThread extends Thread {
           URL url = urlsIterator.previous()
           ygorFeedback.processedData.put("url", url.toString())
           try {
-            kbartReader = enrichmentService.kbartReader = new KbartFromUrlReader(url, new File(sessionFolder), locale, ygorFeedback)
+            baseDataReader = enrichmentService.baseDataReader = new KbartFromUrlReader(url, new File(sessionFolder), locale, ygorFeedback)
           }
           catch (Exception e) {
             ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
@@ -99,7 +100,7 @@ class CompleteProcessingThread extends Thread {
             uploadJobFrame
             continue
           }
-          enrichment.originPathName = kbartReader.fileName
+          enrichment.originPathName = baseDataReader.dataFileName
           enrichment.ignoreLastChanged = ignoreLastChanged
           UploadJob uploadJob = enrichmentService.processComplete(uploadJobFrame, enrichment, null, null, true, ygorFeedback)
           enrichmentService.addUploadJob(uploadJob)                             // replacing uploadJobFrame with same uuid
@@ -124,14 +125,15 @@ class CompleteProcessingThread extends Thread {
       }
     }
     else {
-      kbartReader = enrichmentService.kbartReader = new KbartReader(localFile, localFile.getAbsolutePath())
-      kbartReader.fileName = localFile.toString()
+      // By now, ONIX file processing is only possible through a UI started process. TODO: implement ONIX processing here
+      baseDataReader = enrichmentService.baseDataReader = new KbartReader(localFile, localFile.getAbsolutePath())
+      baseDataReader.dataFileName = localFile.toString()
       Enrichment enrichment
       try {
         enrichment = prepareEnrichment(token, sessionFolder, pkg, src, addOnly, false)
         log.info("Prepared enrichment ${enrichment.originName}.")
 
-        enrichment.originPathName = kbartReader.fileName
+        enrichment.originPathName = baseDataReader.dataFileName
         UploadJob uploadJob = enrichmentService.processComplete(uploadJobFrame, enrichment, null, null, false, ygorFeedback)
         enrichmentService.addUploadJob(uploadJob)
       }
@@ -172,7 +174,7 @@ class CompleteProcessingThread extends Thread {
     if (!localFile && lastUpdated != null){
       addOnly = "true"
     }
-    enrichment = enrichmentService.setupEnrichment(enrichment, kbartReader, addOnly, pmOptions, platformName,
+    enrichment = enrichmentService.setupEnrichment(enrichment, baseDataReader, addOnly, pmOptions, platformName,
         platformUrl, params, pkgTitleIdNamespace, pkgTitle, pkgCuratoryGroup, pkgId, pkgNominalPlatform,
         pkgNominalProvider, updateToken, uuid, lastUpdated, ignoreLastChanged)
 

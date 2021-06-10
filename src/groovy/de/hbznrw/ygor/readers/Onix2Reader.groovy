@@ -22,13 +22,13 @@ class Onix2Reader extends AbstractOnixReader{
   }
 
 
-  Onix2Reader(def onixFile, String originalFileName) throws Exception{
+  Onix2Reader(File onixFile, String originalFileName) throws Exception{
     init(onixFile, originalFileName)
   }
 
 
   protected void init(File onixFile, String originalFileName){
-
+    this.dataFileName = originalFileName
   }
 
 

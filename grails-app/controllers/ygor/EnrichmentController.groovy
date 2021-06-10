@@ -491,7 +491,7 @@ class EnrichmentController implements ControllersHelper{
       log.error("Received request with empty file. Aborting.")
       return
     }
-    enrichmentService.kbartReader = new KbartReader(file)
+    enrichmentService.baseDataReader = new KbartReader(file)
     Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
     String addOnly = params.get('addOnly').toString()                           // "true" or "false"
     def pmOptions = params.get('processOption')                                 // "kbart", "zdb", "ezb"
@@ -513,7 +513,7 @@ class EnrichmentController implements ControllersHelper{
     if (lastUpdated != null){
       addOnly = "true"
     }
-    return enrichmentService.setupEnrichment(enrichment, enrichmentService.kbartReader, addOnly, pmOptions, platform.name,
+    return enrichmentService.setupEnrichment(enrichment, enrichmentService.baseDataReader, addOnly, pmOptions, platform.name,
         platform.primaryUrl, request.parameterMap, pkgTitleId, pkgTitle, pkgCuratoryGroup, pkgId, pkgNominalPlatform,
         pkgNominalProvider, updateToken, uuid, lastUpdated, ignoreLastChanged)
   }

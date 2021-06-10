@@ -19,7 +19,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 @Log4j
-class KbartReader {
+class KbartReader extends AbstractBaseDataReader{
 
   EnrichmentService enrichmentService = new EnrichmentService()
 
@@ -37,7 +37,6 @@ class KbartReader {
   private List<String> csvHeader
   Iterator<CSVRecord> csvRecords
   private CSVRecord lastItemReturned
-  String fileName
   Date fileNameDate
   char delimiterChar
 

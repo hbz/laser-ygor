@@ -28,9 +28,9 @@ class KbartFromUrlReader extends KbartReader{
     log.debug("Final URL after redirects: ${connection.getURL()}")
     ygorFeedback.processedData.put("Final URL after redirects", connection.getURL())
 
-    fileName = sessionFolder.absolutePath.concat(File.separator).concat(urlStringToFileString(url.toExternalForm()))
-    fileName = fileName.split("\\?")[0]
-    File file = new File(fileName)
+    dataFileName = sessionFolder.absolutePath.concat(File.separator).concat(urlStringToFileString(url.toExternalForm()))
+    dataFileName = dataFileName.split("\\?")[0]
+    File file = new File(dataFileName)
 
     byte[] content = getByteContent(connection.getInputStream())
     InputStream inputStream = new ByteArrayInputStream(content)
@@ -48,7 +48,7 @@ class KbartFromUrlReader extends KbartReader{
       }
     }
     FileUtils.copyInputStreamToFile(new ByteArrayInputStream(content), file)
-    init(file, fileName)
+    init(file, dataFileName)
     // copy content to local file
     Files.write(file.toPath(), content)
   }
