@@ -10,6 +10,7 @@ import ygor.EnrichmentService
 class Onix2Reader extends AbstractOnixReader{
 
   EnrichmentService enrichmentService = new EnrichmentService()
+  static final def IDENTIFIER = 'onix2'
 
   def messageSource = grails.util.Holders.applicationContext.getBean("messageSource")
 
@@ -26,7 +27,7 @@ class Onix2Reader extends AbstractOnixReader{
   }
 
 
-  protected void init(File kbartFile, String originalFileName){
+  protected void init(File onixFile, String originalFileName){
 
   }
 

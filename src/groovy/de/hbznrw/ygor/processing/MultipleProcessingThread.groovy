@@ -2,9 +2,11 @@ package de.hbznrw.ygor.processing
 
 import com.google.common.base.Throwables
 import de.hbznrw.ygor.export.GokbExporter
+import de.hbznrw.ygor.readers.AbstractBaseDataReader
 import de.hbznrw.ygor.readers.EzbReader
 import de.hbznrw.ygor.readers.KbartReader
 import de.hbznrw.ygor.readers.KbartReaderConfiguration
+import de.hbznrw.ygor.readers.Onix2Reader
 import de.hbznrw.ygor.readers.ZdbReader
 import groovy.util.logging.Log4j
 import ygor.Enrichment
@@ -16,6 +18,7 @@ import ygor.identifier.PrintIdentifier
 import ygor.identifier.ZdbIdentifier
 import ygor.integrators.EzbIntegrationService
 import ygor.integrators.KbartIntegrationService
+import ygor.integrators.OnixIntegrationService
 import ygor.integrators.ZdbIntegrationService
 
 @Log4j
@@ -43,12 +46,12 @@ class MultipleProcessingThread extends Thread {
   private double progressCurrent = 0.0
   private double progressIncrement
 
-  private KbartReader kbartReader
+  private AbstractBaseDataReader baseDataReader
   private ZdbIntegrationService zdbIntegrationService
   private EzbIntegrationService ezbIntegrationService
   YgorFeedback ygorFeedback
 
-  MultipleProcessingThread(Enrichment en, HashMap options, KbartReader kbartReader, YgorFeedback ygorFeedback){
+  MultipleProcessingThread(Enrichment en, HashMap options, AbstractBaseDataReader baseDataReader, YgorFeedback ygorFeedback){
     enrichment = en
     apiCalls = EnrichmentService.decodeApiCalls(options.get('options'))
     quote = options.get('quote')
@@ -57,7 +60,7 @@ class MultipleProcessingThread extends Thread {
     addOnly = options.get('addOnly')
     platform = options.get('platform')
     kbartFile = en.originPathName
-    this.kbartReader = kbartReader
+    this.baseDataReader = baseDataReader
     zdbKeyMapping = en.mappingsContainer.getMapping("zdbId", MappingsContainer.YGOR)
     issnKeyMapping = en.mappingsContainer.getMapping("printIdentifier", MappingsContainer.YGOR)
     eissnKeyMapping = en.mappingsContainer.getMapping("onlineIdentifier", MappingsContainer.YGOR)
@@ -122,6 +125,11 @@ class MultipleProcessingThread extends Thread {
           KbartIntegrationService kbartIntegrationService = new KbartIntegrationService(enrichment.mappingsContainer)
           calculateProgressIncrement(enrichment.sessionFolder.absolutePath)
           kbartIntegrationService.integrate(this, enrichment.dataContainer, conf)
+          break
+        case Onix2Reader.IDENTIFIER:
+          OnixIntegrationService onixIntegrationService = new OnixIntegrationService(enrichment.mappingsContainer)
+          calculateProgressIncrement(enrichment.sessionFolder.absolutePath)
+          onixIntegrationService.integrate(this, enrichment.dataContainer)
           break
         case EzbReader.IDENTIFIER:
           enrichment.isEzbIntegrated = true

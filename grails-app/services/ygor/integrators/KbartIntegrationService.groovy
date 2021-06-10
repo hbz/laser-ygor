@@ -27,7 +27,7 @@ class KbartIntegrationService {
 
   def integrate(MultipleProcessingThread owner, DataContainer dataContainer,
                 KbartReaderConfiguration kbartReaderConfiguration) {
-    KbartReader reader = owner.kbartReader.setConfiguration(kbartReaderConfiguration)
+    KbartReader reader = owner.baseDataReader.setConfiguration(kbartReaderConfiguration)
     List<FieldKeyMapping> idMappings = [owner.zdbKeyMapping, owner.issnKeyMapping, owner.eissnKeyMapping]
     List<AbstractIdentifier> identifiers
     LocalDate lastUpdate = null
