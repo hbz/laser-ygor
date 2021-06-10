@@ -393,33 +393,6 @@ class EnrichmentController implements ControllersHelper{
   }
 
 
-  /**
-   * Current Test configuration via Postman:
-   *
-   * POST /ygor/enrichment/processCompleteWithToken?
-   * addOnly=false&
-   * processOption=kbart,zdb,ezb&
-   * pkgId=<yourPackageId>&
-   * pkgNominalPlatformId=<theIdOfThePlatformBelongingToThisPackage>&
-   * updateToken=<packageUpdateToken>&
-   * titleIdNamespace=<theNamespaceForTheTitleId>
-   *
-   * Content-Disposition: form-data; name="uploadFile"; filename="yourKBartTestFile.tsv"
-   */
-  def processCompleteWithToken(){
-    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
-        "Complete processing with token authentication. ", this.getClass(), null, null, null, null)
-    SessionService.setSessionDuration(request, 72000)
-    def result = [:]
-    Enrichment enrichment = buildEnrichmentFromRequest()
-    UploadJob uploadJob = enrichmentService.processComplete(enrichment, null, null, false, true, ygorFeedback)
-    enrichmentService.addUploadJob(uploadJob)
-    result.message = watchUpload(uploadJob, Enrichment.FileType.PACKAGE, enrichment.originName)
-    result.ygorFeedback = ygorFeedback
-    render result as JSON
-  }
-
-
   def ajaxGetPackageRelatedValues = {
     def en = getCurrentEnrichment()
     if (en){

@@ -6,7 +6,6 @@ import de.hbznrw.ygor.tools.UrlToolkit
 import groovy.util.logging.Log4j
 import org.apache.commons.lang.StringUtils
 
-// TODO: delete
 @Log4j
 class AutoUpdateService {
 
@@ -18,19 +17,6 @@ class AutoUpdateService {
     FileWriter fileWriter = new FileWriter(grails.util.Holders.grailsApplication.config.ygor.autoUpdateJobsLocation.concat(fileName))
     fileWriter.write(enrichment.asJson(false))
     fileWriter.close()
-  }
-
-
-  static void processUpdateConfiguration(File updateFile, YgorFeedback ygorFeedback) throws Exception{
-    Enrichment enrichment = Enrichment.fromJsonFile(updateFile, false)
-    List<URL> updateUrls = getUpdateUrls(enrichment)
-    for (URL updateUrl in updateUrls){
-      if (UrlToolkit.urlExists(updateUrl)){
-        enrichment.updateUrl = updateUrl
-        log.info("Start automatic update for : ".concat(updateFile.absolutePath).concat(" with URL : ").concat(updateUrl.toExternalForm()))
-        processUpdate(enrichment, ygorFeedback)
-      }
-    }
   }
 
 
@@ -57,21 +43,4 @@ class AutoUpdateService {
     }
   }
 
-
-  // obsolete. TODO: delete
-  static void processUpdate(File updateConfiguration, YgorFeedback ygorFeedback) throws Exception{
-    log.info("Start automatic update for : ".concat(updateConfiguration.absolutePath))
-    Enrichment enrichment = Enrichment.fromRawJson(JsonToolkit.jsonNodeFromFile(updateConfiguration), false)
-    enrichment.isUpdate = true
-    enrichment.needsPreciseClassification = false
-    processUpdate(enrichment, ygorFeedback)
-  }
-
-
-  static void processUpdate(Enrichment enrichment, YgorFeedback ygorFeedback) throws Exception{
-    enrichment.isUpdate = true
-    enrichment.needsPreciseClassification = false
-    UploadJob uploadJob = ENRICHMENT_SERVICE.buildCompleteUpdateProcess(enrichment, ygorFeedback)
-    ENRICHMENT_CONTROLLER.watchUpload(uploadJob, Enrichment.FileType.PACKAGE_WITH_TITLEDATA, enrichment.resultName)
-  }
 }

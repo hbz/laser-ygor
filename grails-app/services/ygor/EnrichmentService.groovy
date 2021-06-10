@@ -5,15 +5,12 @@ import de.hbznrw.ygor.processing.SendPackageThreadGokb
 import de.hbznrw.ygor.processing.UploadThreadGokb
 import de.hbznrw.ygor.processing.YgorFeedback
 import de.hbznrw.ygor.readers.AbstractBaseDataReader
-import de.hbznrw.ygor.readers.KbartFromUrlReader
-import de.hbznrw.ygor.readers.KbartReader
 import grails.util.Holders
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.io.IOUtils
-import org.apache.commons.lang.LocaleUtils
 import org.apache.commons.lang.StringUtils
 import org.mozilla.universalchardet.UniversalDetector
 
@@ -351,38 +348,7 @@ class EnrichmentService{
 
 
   /**
-   * used by AutoUpdateService
-   */
-  UploadJob buildCompleteUpdateProcess(Enrichment enrichment, YgorFeedback ygorFeedback){
-    try{
-      String urlString = StringUtils.isEmpty(enrichment.updateUrl) ? enrichment.originUrl : enrichment.updateUrl
-      URL originUrl = new URL(urlString)
-      baseDataReader = new KbartFromUrlReader(originUrl, enrichment.sessionFolder, LocaleUtils.toLocale(enrichment.locale),
-          ygorFeedback)
-      enrichment.dataContainer.records = []
-      new File(enrichment.enrichmentFolder).mkdirs()
-      return processComplete(enrichment, null, null, true, true)
-    }
-    catch (Exception e){
-      log.error(e.getMessage())
-      log.error("Could not process update ".concat(enrichment?.resultName))
-    }
-  }
-
-
-  /**
-   * used by AutoUpdateService    --> processCompleteUpdate
-   * used by EnrichmentController --> processCompleteWithToken
-   */
-  UploadJob processComplete(Enrichment enrichment, String gokbUsername, String gokbPassword, boolean isUpdate,
-                            boolean needsPreciseClassification, boolean waitForFinish, YgorFeedback ygorFeedback) {
-    UploadJobFrame uploadJob = new UploadJobFrame(Enrichment.FileType.PACKAGE_WITH_TITLEDATA)
-    return processComplete(uploadJob, enrichment, gokbUsername, gokbPassword, isUpdate, needsPreciseClassification, waitForFinish, ygorFeedback)
-  }
-
-
-  /**
-   * used by EnrichmentService    --> processComplete
+   * used by CompleteProcessingThread   --> run
    */
   UploadJob processComplete(@Nonnull UploadJobFrame uploadJobFrame, @Nonnull Enrichment enrichment, String gokbUsername,
                             String gokbPassword, boolean waitForFinish, YgorFeedback ygorFeedback) {
