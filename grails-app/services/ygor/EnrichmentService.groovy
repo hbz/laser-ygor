@@ -505,7 +505,7 @@ class EnrichmentService{
                              String pkgTitle, String pkgCuratoryGroup, String pkgId, String pkgNominalPlatform,
                              String pkgNominalProvider, String updateToken, String uuid, String lastUpdated,
                              boolean ignoreLastChanged){
-    kbartReader.checkHeader()
+    kbartReader.checkFields()
     Map<String, Object> parameterMap = new HashMap<>()
     parameterMap.putAll(params)
     parameterMap.put("pkgTitleId", [titleIdNamespace])

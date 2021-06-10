@@ -32,17 +32,26 @@ class Onix2Reader extends AbstractOnixReader{
   }
 
 
+  @Override
   Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) {
     return null
   }
 
 
+  @Override
+  void checkFields() throws Exception {
+    // TODO
+  }
+
+
+  @Override
   static boolean isValidFile(File file){
     // TODO
     return false
   }
 
 
+  @Override
   static List<String> getValidEncodings(){
     return ["UTF-8", "UTF-16"]
   }

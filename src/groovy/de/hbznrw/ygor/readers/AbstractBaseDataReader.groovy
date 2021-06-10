@@ -10,6 +10,8 @@ abstract class AbstractBaseDataReader{
 
   abstract Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged)
 
+  abstract void checkFields() throws Exception
+
   abstract static boolean isValidFile(File file)
 
   abstract static List<String> getValidEncodings()

@@ -166,6 +166,7 @@ class KbartReader {
   }
 
 
+  @Override
   Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) {
     int i = csvHeader.indexOf("last_changed")
     while (csvRecords.hasNext()){
@@ -212,7 +213,8 @@ class KbartReader {
   }
 
 
-  void checkHeader() throws Exception {
+  @Override
+  void checkFields() throws Exception {
     def missingKeys = []
     if (!csvHeader) {
       throw new Exception(VALIDATION_TAG_LIB.message(code: 'error.kbart.missingHeader').toString()
@@ -287,12 +289,14 @@ class KbartReader {
   ]
 
 
+  @Override
   static boolean isValidFile(File file){
     // TODO
     return false
   }
 
 
+  @Override
   static List<String> getValidEncodings(){
     return ["UTF-8"]
   }

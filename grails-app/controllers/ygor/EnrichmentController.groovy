@@ -112,10 +112,9 @@ class EnrichmentController implements ControllersHelper{
       // the file form is unpopulated but the previously selected file is unchanged
       file = request.session.lastUpdate.file
     }
-
-    Class readerClass = AbstractBaseDataReader.determineReader(file)
+    Class<AbstractBaseDataReader> readerClass = AbstractBaseDataReader.determineReader(file)
     String encoding = enrichmentService.getEncoding(file.getInputStream(), null)
-    if (encoding && encoding in readerClass){
+    if (encoding && encoding in readerClass.getValidEncodings()){
       flash.info = null
       flash.warning = null
       String invalidEncoding = message(code: 'error.kbart.invalidEncoding').toString()
@@ -157,8 +156,8 @@ class EnrichmentController implements ControllersHelper{
       Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
       enrichment.addFileAndFormat()
       enrichment.status = Enrichment.ProcessingState.PREPARE_1
-      baseDataReader = new KbartReader(enrichment.transferredFile, enrichment.originName)
-      baseDataReader.checkHeader()
+      baseDataReader = readerClass.newInstance(enrichment.transferredFile, enrichment.originName)
+      baseDataReader.checkFields()
       redirect(
           action: 'process',
           params: [
@@ -224,7 +223,7 @@ class EnrichmentController implements ControllersHelper{
     enrichment.locale = request.locale
     try {
       baseDataReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale, ygorFeedback)
-      baseDataReader.checkHeader()
+      baseDataReader.checkFields()
     }
     catch (Exception e) {
       flash.info = null
@@ -327,8 +326,8 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processGokbPackage(){
-    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing Knowledge Base package. ", this.getClass(), null,
-        null, null, null)
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
+        "Processing Knowledge Base package. ", this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 72000)
     String sessionFolder = grails.util.Holders.grailsApplication.config.ygor.uploadLocation.toString()
         .concat(File.separator).concat(UUID.randomUUID().toString())
