@@ -286,4 +286,15 @@ class KbartReader {
       'none'       : QuoteMode.NONE
   ]
 
+
+  static boolean isValidFile(File file){
+    // TODO
+    return false
+  }
+
+
+  static List<String> getValidEncodings(){
+    return ["UTF-8"]
+  }
+
 }

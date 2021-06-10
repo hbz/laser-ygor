@@ -3,6 +3,7 @@ package ygor
 import de.hbznrw.ygor.processing.CompleteProcessingThread
 import de.hbznrw.ygor.processing.UploadThreadGokb
 import de.hbznrw.ygor.processing.YgorFeedback
+import de.hbznrw.ygor.readers.AbstractBaseDataReader
 import de.hbznrw.ygor.readers.KbartFromUrlReader
 import de.hbznrw.ygor.readers.KbartReader
 import grails.converters.JSON
@@ -23,7 +24,7 @@ class EnrichmentController implements ControllersHelper{
 
   EnrichmentService enrichmentService
   GokbService gokbService
-  KbartReader kbartReader
+  AbstractBaseDataReader baseDataReader
   def allCuratoryGroups
 
   def index = {
@@ -37,7 +38,7 @@ class EnrichmentController implements ControllersHelper{
     def namespace_doi_list = []
     allCuratoryGroups = gokbService.getCurrentCuratoryGroupsList()
     namespace_doi_list.addAll(namespace_list)
-    namespace_doi_list  << [id: 'doi', text: 'doi']
+    namespace_doi_list << [id: 'doi', text: 'doi']
     Enrichment en = getCurrentEnrichment()
     setErrorStatus(en)
     render(
@@ -102,8 +103,8 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadFile = {
-    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading file. ", this.getClass(), null,
-        null, null, null)
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading file. ",
+        this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 3600)
     def file = request.getFile('uploadFile')
     if (file.size < 1 && request.parameterMap.uploadFileLabel != null &&
@@ -111,8 +112,10 @@ class EnrichmentController implements ControllersHelper{
       // the file form is unpopulated but the previously selected file is unchanged
       file = request.session.lastUpdate.file
     }
+
+    Class readerClass = AbstractBaseDataReader.determineReader(file)
     String encoding = enrichmentService.getEncoding(file.getInputStream(), null)
-    if (encoding && encoding != "UTF-8"){
+    if (encoding && encoding in readerClass){
       flash.info = null
       flash.warning = null
       String invalidEncoding = message(code: 'error.kbart.invalidEncoding').toString()
@@ -154,8 +157,8 @@ class EnrichmentController implements ControllersHelper{
       Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
       enrichment.addFileAndFormat()
       enrichment.status = Enrichment.ProcessingState.PREPARE_1
-      kbartReader = new KbartReader(enrichment.transferredFile, enrichment.originName)
-      kbartReader.checkHeader()
+      baseDataReader = new KbartReader(enrichment.transferredFile, enrichment.originName)
+      baseDataReader.checkHeader()
       redirect(
           action: 'process',
           params: [
@@ -220,8 +223,8 @@ class EnrichmentController implements ControllersHelper{
     enrichment.processingOptions = null
     enrichment.locale = request.locale
     try {
-      kbartReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale, ygorFeedback)
-      kbartReader.checkHeader()
+      baseDataReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale, ygorFeedback)
+      baseDataReader.checkHeader()
     }
     catch (Exception e) {
       flash.info = null
@@ -369,7 +372,7 @@ class EnrichmentController implements ControllersHelper{
     }
     else{
       UploadJobFrame uploadJobFrame = new UploadJobFrame(Enrichment.FileType.PACKAGE_WITH_TITLEDATA, ygorFeedback)
-      CompleteProcessingThread completeProcessingThread = new CompleteProcessingThread(kbartReader, pkg, src, token,
+      CompleteProcessingThread completeProcessingThread = new CompleteProcessingThread(baseDataReader, pkg, src, token,
           uploadJobFrame, transferredFile, addOnly, ignoreLastChanged)
       try {
         completeProcessingThread.start()
@@ -614,7 +617,7 @@ class EnrichmentController implements ControllersHelper{
                 'ygorType'   : grailsApplication.config.ygor.type
             ]
             en.processingOptions = Arrays.asList(pmOptions)
-            en.process(options, kbartReader, ygorFeedback)
+            en.process(options, baseDataReader, ygorFeedback)
           }
         }
       }

@@ -8,6 +8,19 @@ import java.time.LocalDate
  */
 abstract class AbstractBaseDataReader{
 
-  abstract Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged);
+  abstract Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged)
+
+  abstract static boolean isValidFile(File file)
+
+  abstract static List<String> getValidEncodings()
+
+  static Class determineReader(File baseDataFile){
+    if (KbartReader.isValidFile(baseDataFile)){
+      return KbartReader
+    }
+    if (Onix2Reader.isValidFile(baseDataFile)){
+      return Onix2Reader
+    }
+  }
 
 }

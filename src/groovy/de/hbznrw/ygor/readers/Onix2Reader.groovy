@@ -36,4 +36,15 @@ class Onix2Reader extends AbstractOnixReader{
     return null
   }
 
+
+  static boolean isValidFile(File file){
+    // TODO
+    return false
+  }
+
+
+  static List<String> getValidEncodings(){
+    return ["UTF-8", "UTF-16"]
+  }
+
 }
