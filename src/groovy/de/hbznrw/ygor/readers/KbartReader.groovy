@@ -166,7 +166,6 @@ class KbartReader {
   }
 
 
-  // NOTE: should have been an override of AbstractReader.readItemData(), but the parameters are too different
   Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) {
     int i = csvHeader.indexOf("last_changed")
     while (csvRecords.hasNext()){

@@ -4,7 +4,7 @@ import groovy.util.logging.Log4j
 import groovy.util.slurpersupport.GPathResult
 
 @Log4j
-class EzbReader extends AbstractReader {
+class EzbReader extends AbstractEnrichmentDataReader {
 
   static final IDENTIFIER = 'ezb'
 

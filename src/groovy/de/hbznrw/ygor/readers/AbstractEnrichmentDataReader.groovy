@@ -1,6 +1,6 @@
 package de.hbznrw.ygor.readers
 
-abstract class AbstractReader {
+abstract class AbstractEnrichmentDataReader{
 
   /**
    * @param queryString

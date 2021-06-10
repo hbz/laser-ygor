@@ -4,7 +4,7 @@ import groovy.util.logging.Log4j
 
 
 @Log4j
-class ZdbReader extends AbstractReader {
+class ZdbReader extends AbstractEnrichmentDataReader {
 
   static final IDENTIFIER = 'zdb'
 
