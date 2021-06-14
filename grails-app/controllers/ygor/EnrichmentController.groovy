@@ -5,7 +5,6 @@ import de.hbznrw.ygor.processing.UploadThreadGokb
 import de.hbznrw.ygor.processing.YgorFeedback
 import de.hbznrw.ygor.readers.AbstractBaseDataReader
 import de.hbznrw.ygor.readers.KbartFromUrlReader
-import de.hbznrw.ygor.readers.KbartReader
 import grails.converters.JSON
 import grails.util.Holders
 import groovy.util.logging.Log4j
@@ -222,6 +221,7 @@ class EnrichmentController implements ControllersHelper{
     enrichment.processingOptions = null
     enrichment.locale = request.locale
     try {
+      // TODO: implement switch for ONIX / KBart
       baseDataReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale, ygorFeedback)
       baseDataReader.checkFields()
     }
@@ -453,45 +453,6 @@ class EnrichmentController implements ControllersHelper{
   }
 
 
-  private Enrichment buildEnrichmentFromRequest(){
-    // create a sessionFolder
-    CommonsMultipartFile file = request.getFile('uploadFile')
-    if (file == null){
-      log.error("Received request missing a file. Aborting.")
-      return
-    }
-    if (file.empty){
-      log.error("Received request with empty file. Aborting.")
-      return
-    }
-    enrichmentService.baseDataReader = new KbartReader(file)
-    Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
-    String addOnly = params.get('addOnly').toString()                           // "true" or "false"
-    def pmOptions = params.get('processOption')                                 // "kbart", "zdb", "ezb"
-    boolean ignoreLastChanged = params.boolean('ignoreLastChanged')       // "true" or "false"
-
-    Map<String, Object> platform = enrichmentService.getPlatform(String.valueOf(params.get('pkgNominalPlatformId')))
-    Map<String, Object> pkg =
-        enrichmentService.getPackage(params.get('pkgId'), ["source", "curatoryGroups", "nominalPlatform"], null, null)
-    String pkgTitleId = request.parameterMap.get("titleIdNamespace")
-    String pkgTitle = pkg.get("name")
-    String pkgCuratoryGroup = pkg.get("_embedded")?.get("curatoryGroups")?.getAt(0)?.get("name") // TODO query embed CG
-    String pkgId = String.valueOf(pkg.get("id"))
-    String pkgNominalPlatform = String.valueOf(pkg.get("nominalPlatform")?.get("id"))?.concat(";")
-        .concat(pkg.get("nominalPlatform")?.get("name"))
-    String pkgNominalProvider = pkg.get("provider")?.get("name")
-    String updateToken = params.get('updateToken')
-    String uuid = pkg.get("uuid")
-    String lastUpdated = EnrichmentService.getLastRun(pkg)
-    if (lastUpdated != null){
-      addOnly = "true"
-    }
-    return enrichmentService.setupEnrichment(enrichment, enrichmentService.baseDataReader, addOnly, pmOptions, platform.name,
-        platform.primaryUrl, request.parameterMap, pkgTitleId, pkgTitle, pkgCuratoryGroup, pkgId, pkgNominalPlatform,
-        pkgNominalProvider, updateToken, uuid, lastUpdated, ignoreLastChanged)
-  }
-
-
   def getStatus(){
     String jobId = params.get('jobId')
     log.debug("Received status request for uploadJob $jobId.")
@@ -529,28 +490,6 @@ class EnrichmentController implements ControllersHelper{
       // uploadJob is instance of UploadJobFrame
       result.status = UploadThreadGokb.Status.PREPARATION.toString()
       render result as JSON
-    }
-  }
-
-
-  static String watchUpload(UploadJob uploadJob, Enrichment.FileType fileType, String fileName){
-    while (true){
-      uploadJob.updateCount()
-      uploadJob.refreshStatus()
-      if (uploadJob.getStatus() == UploadThreadGokb.Status.STARTED){
-        // still running
-        Thread.sleep(1000)
-      }
-      if (uploadJob.getStatus() == UploadThreadGokb.Status.ERROR){
-        String message = "Aborting. Couldn't upload " + fileType.toString() + " for file " + fileName
-        log.error(message)
-        return message
-      }
-      if (uploadJob.getStatus() == UploadThreadGokb.Status.SUCCESS || uploadJob.getStatus() == UploadThreadGokb.Status.FINISHED_UNDEFINED){
-        String message = "Success. Finished upload for file " + fileName
-        log.info(message)
-        return message
-      }
     }
   }
 
