@@ -29,7 +29,6 @@ class KbartReader extends AbstractBaseDataReader{
   static final String KBART_HEADER_ZDB_ID = "zdb_id"
   static final String KBART_HEADER_ONLINE_IDENTIFIER = "online_identifier"
   static final String KBART_HEADER_PRINT_IDENTIFIER = "print_identifier"
-  static final String KBART_HEADER_DOI_IDENTIFIER = "doi_identifier"
   static final Pattern DATE_PATTERN = Pattern.compile("[\\d]{4}-[\\d]{2}-[\\d]{2}")
 
   private BufferedReader csvReader

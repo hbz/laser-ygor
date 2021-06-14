@@ -9,7 +9,7 @@ import de.hbznrw.ygor.export.structure.PackageHeaderNominalProvider
 import de.hbznrw.ygor.normalizers.DateNormalizer
 import de.hbznrw.ygor.processing.MultipleProcessingThread
 import de.hbznrw.ygor.processing.YgorFeedback
-import de.hbznrw.ygor.readers.KbartReader
+import de.hbznrw.ygor.readers.AbstractBaseDataReader
 import de.hbznrw.ygor.tools.FileToolkit
 import de.hbznrw.ygor.tools.JsonToolkit
 import de.hbznrw.ygor.tools.RecordFileFilter
@@ -84,7 +84,7 @@ class Enrichment{
   // possible TODO: gokb-ui might need this field in future times
 
   def thread
-  KbartReader kbartReader
+  AbstractBaseDataReader baseDataReader
   MappingsContainer mappingsContainer
   def dataContainer
 
@@ -157,18 +157,18 @@ class Enrichment{
   /**
    * Ygor's central processing method.
    */
-  def process(HashMap options, KbartReader kbartReader, YgorFeedback ygorFeedback) throws Exception{
+  def process(HashMap options, AbstractBaseDataReader baseDataReader, YgorFeedback ygorFeedback) throws Exception{
     log.debug("Start processing enrichment ${originName}.")
     ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.PREPARATION
-    this.kbartReader = kbartReader
-    if (kbartReader.fileNameDate){
-      this.fileNameDate = DateNormalizer.YYYY_MM_DD.format(kbartReader.fileNameDate)
+    this.baseDataReader = baseDataReader
+    if (baseDataReader.fileNameDate){
+      this.fileNameDate = DateNormalizer.YYYY_MM_DD.format(baseDataReader.fileNameDate)
     }
     resultName = FileToolkit.getDateTimePrefixedFileName(originName)
     ygorVersion = options.get('ygorVersion')
     dataContainer.info.file = originName
     dataContainer.info.type = options.get('ygorType')
-    thread = new MultipleProcessingThread(this, options, kbartReader, ygorFeedback)
+    thread = new MultipleProcessingThread(this, options, baseDataReader, ygorFeedback)
     thread.start()
   }
 

@@ -125,7 +125,7 @@ class GokbExporter {
 
 
   private static Character getMultiValueSeparator(Enrichment enrichment){
-    if (enrichment.kbartReader.delimiterChar == ','){
+    if (enrichment.baseDataReader.delimiterChar == ','){
       return ';'
     }
     else{

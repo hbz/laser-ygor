@@ -78,6 +78,7 @@ class CompleteProcessingThread extends Thread {
           URL url = urlsIterator.previous()
           ygorFeedback.processedData.put("url", url.toString())
           try {
+            // TODO: implement switch for ONIX / KBart
             baseDataReader = enrichmentService.baseDataReader = new KbartFromUrlReader(url, new File(sessionFolder), locale, ygorFeedback)
           }
           catch (Exception e) {
@@ -125,7 +126,8 @@ class CompleteProcessingThread extends Thread {
       }
     }
     else {
-      // By now, ONIX file processing is only possible through a UI started process. TODO: implement ONIX processing here
+      // By now, ONIX file processing is only possible through a UI started process.
+      // TODO: implement switch for ONIX / KBart
       baseDataReader = enrichmentService.baseDataReader = new KbartReader(localFile, localFile.getAbsolutePath())
       baseDataReader.dataFileName = localFile.toString()
       Enrichment enrichment
@@ -150,6 +152,7 @@ class CompleteProcessingThread extends Thread {
                                        boolean ignoreLastChanged, String updateURL = null)
       throws Exception{
     Enrichment enrichment = Enrichment.fromFilename(sessionFolder, pkg.name)
+    // TODO: implement switch for ONIX / KBart
     def pmOptions = [MappingsContainer.KBART]
     // fields from source
     if (src.zdbMatch){
