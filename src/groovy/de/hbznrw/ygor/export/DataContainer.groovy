@@ -3,7 +3,6 @@ package de.hbznrw.ygor.export
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
-import de.hbznrw.ygor.export.structure.Meta
 import de.hbznrw.ygor.export.structure.PackageHeader
 import de.hbznrw.ygor.tools.JsonToolkit
 import de.hbznrw.ygor.tools.RecordFileFilter
@@ -17,7 +16,6 @@ class DataContainer {
 
   static JsonNodeFactory NODE_FACTORY = JsonNodeFactory.instance
 
-  Meta info
   PackageHeader pkgHeader
   String  pkgId
   String  pkgIdNamespace
@@ -42,12 +40,6 @@ class DataContainer {
     this.enrichmentFolder = enrichmentFolder
     this.resultHash = resultHash
     this.mappingsContainer = mappingsContainer
-    info = new Meta(
-        date: new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('GMT+1')),
-        api: [],
-        stash: [:],
-        namespace_title_id: ""
-    )
     pkgHeader = new PackageHeader()
 
     records = []
