@@ -459,7 +459,7 @@ class EnrichmentController implements ControllersHelper{
         .concat("?componentType=Platform&uuid=${platformUuid}")
     def platform = EnrichmentService.gokbRestApiRequest(platformQueryUri, null, null, null)
     if (platform?.records){
-      result = platform.records[0]?.name
+      result = platform.records[0]?.titleNamespace
     }
     return result
   }
