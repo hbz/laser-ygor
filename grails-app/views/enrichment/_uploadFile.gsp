@@ -3,7 +3,7 @@
 
 <g:if test="${enrichment == null || enrichment.status == null}">
 
-    <!-- KBART FILE UPLOAD -->
+    <!-- KBART OR ONIX FILE UPLOAD -->
     <div class="row">
         <div class="col-xs-12">
             <g:set var="filename" value="${message(code: 'uploadFile.file.nofile')}" scope="page"/>
@@ -23,7 +23,7 @@
                 <ul class="list-group content-list">
                     <li class="list-group-item">
                         <label class="btn btn-link btn-file">
-                            <input type="file" accept=".csv,.tsv,.ssv,.txt" name="uploadFile"
+                            <input type="file" accept=".csv,.tsv,.ssv,.txt,.xml" name="uploadFile"
                                    style="display: none;"/><g:message code="uploadFile.button.select"/>
                         </label>
                         <input type="submit" value="${message(code: 'uploadFile.button.upload')}"

@@ -2,6 +2,8 @@ package de.hbznrw.ygor.readers
 
 import groovy.util.logging.Log4j
 import org.codehaus.groovy.grails.plugins.web.taglib.ValidationTagLib
+import org.springframework.web.multipart.commons.CommonsMultipartFile
+
 import java.time.LocalDate
 import ygor.EnrichmentService
 
@@ -45,7 +47,7 @@ class Onix2Reader extends AbstractOnixReader{
 
 
   @Override
-  static boolean isValidFile(File file){
+  static boolean isValidFile(CommonsMultipartFile file){
     if (!hasFileValidExtension(file, ["xml"] as ArrayList<String>)){
       return false
     }

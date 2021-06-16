@@ -1,5 +1,7 @@
 package de.hbznrw.ygor.readers
 
+import org.springframework.web.multipart.commons.CommonsMultipartFile
+
 import java.time.LocalDate
 
 /**
@@ -14,11 +16,11 @@ abstract class AbstractBaseDataReader{
 
   abstract void checkFields() throws Exception
 
-  abstract static boolean isValidFile(File file)
+  abstract static boolean isValidFile(CommonsMultipartFile file)
 
   abstract static List<String> getValidEncodings()
 
-  static Class determineReader(File baseDataFile){
+  static Class determineReader(CommonsMultipartFile baseDataFile){
     if (KbartReader.isValidFile(baseDataFile)){
       return KbartReader
     }
@@ -27,8 +29,8 @@ abstract class AbstractBaseDataReader{
     }
   }
 
-  static boolean hasFileValidExtension(File file, List<String> validExtensions) throws IllegalFormatException{
-    String fileName = file.getAbsolutePath()
+  static boolean hasFileValidExtension(CommonsMultipartFile file, List<String> validExtensions) throws IllegalFormatException{
+    String fileName = file.originalFilename
     int lastDotIndex = fileName.lastIndexOf(".")
     if (lastDotIndex < 0){
       throw new IllegalFormatException("File name \"$fileName\" missing extension.")

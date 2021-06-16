@@ -113,7 +113,7 @@ class EnrichmentController implements ControllersHelper{
     }
     Class<AbstractBaseDataReader> readerClass = AbstractBaseDataReader.determineReader(file)
     String encoding = enrichmentService.getEncoding(file.getInputStream(), null)
-    if (encoding && encoding in readerClass.getValidEncodings()){
+    if (encoding && !(encoding in readerClass.getValidEncodings())){
       flash.info = null
       flash.warning = null
       String invalidEncoding = message(code: 'error.kbart.invalidEncoding').toString()
@@ -129,8 +129,7 @@ class EnrichmentController implements ControllersHelper{
       )
       return
     }
-    def addOnly = false
-    setInputFieldDataToLastUpdate(file, null, addOnly)
+    setInputFieldDataToLastUpdate(file, null, false)
     if (file.empty){
       flash.info = null
       flash.warning = null
@@ -154,7 +153,6 @@ class EnrichmentController implements ControllersHelper{
     try {
       Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
       enrichment.addFileAndFormat()
-      enrichment.status = Enrichment.ProcessingState.PREPARE_1
       baseDataReader = readerClass.newInstance(enrichment.transferredFile, enrichment.originName)
       baseDataReader.checkFields()
       redirect(
