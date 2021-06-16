@@ -30,7 +30,7 @@ class DataContainer {
   String enrichmentFolder
   String resultHash
   MappingsContainer mappingsContainer
-
+  String namespace_title_id
 
   DataContainer(File sessionFolder, String enrichmentFolder, String resultHash, MappingsContainer mappingsContainer) {
     if (!sessionFolder.isDirectory()){
@@ -77,7 +77,7 @@ class DataContainer {
   void validateRecords() {
     for (String recId in records) {
       Record record = Record.load(enrichmentFolder.concat(File.separator), resultHash, recId, mappingsContainer)
-      record.validateContent(info.namespace_title_id)
+      record.validateContent(namespace_title_id)
       record.save(enrichmentFolder, resultHash)
     }
   }

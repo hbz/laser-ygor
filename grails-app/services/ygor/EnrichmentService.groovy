@@ -70,7 +70,7 @@ class EnrichmentService{
       enrichment.dataContainer.isil = pm['pkgIsil'][0]
     }
     if (pm['pkgCuratoryGroup']){
-      enrichment.dataContainer.curatoryGroup = (pm['pkgCuratoryGroup'][0])
+      enrichment.dataContainer.curatoryGroup = pm['pkgCuratoryGroup'][0]
     }
     if (pm['pkgId'] && "" != pm['pkgId'][0].trim()){
       enrichment.dataContainer.pkgId = (pm['pkgId'][0])
@@ -79,7 +79,7 @@ class EnrichmentService{
       enrichment.dataContainer.pkgIdNamespace = (pm['pkgIdNamespace'][0])
     }
     if (pm['pkgTitleId']){
-      enrichment.dataContainer.info.namespace_title_id = pm['pkgTitleId'][0]
+      enrichment.dataContainer.namespace_title_id = pm['pkgTitleId'][0]
     }
   }
 

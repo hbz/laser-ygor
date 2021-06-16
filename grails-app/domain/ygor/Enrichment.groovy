@@ -282,7 +282,7 @@ class Enrichment{
     if (updateUrl != null){
       result.append("\"updateUrl\":\"").append(updateUrl).append("\",")
     }
-    result.append("\"namespaceTitleId\":\"").append(dataContainer.info.namespace_title_id).append("\",")
+    result.append("\"namespaceTitleId\":\"").append(dataContainer.namespace_title_id).append("\",")
     result.append("\"addOnly\":\"").append(String.valueOf(addOnly)).append("\",")
     result.append("\"ignoreLastChanged\":\"").append(String.valueOf(ignoreLastChanged)).append("\",")
     result.append("\"isZdbIntegrated\":\"").append(String.valueOf(isZdbIntegrated)).append("\",")
@@ -346,7 +346,7 @@ class Enrichment{
     en.dataContainer.markDuplicateIds()
     en.originUrl = JsonToolkit.fromJson(rootNode, "configuration.originUrl")
     en.updateUrl = JsonToolkit.fromJson(rootNode, "configuration.updateUrl")
-    en.dataContainer.info.namespace_title_id = JsonToolkit.fromJson(rootNode, "configuration.namespaceTitleId")
+    en.dataContainer.namespace_title_id = JsonToolkit.fromJson(rootNode, "configuration.namespaceTitleId")
     en.addOnly = Boolean.valueOf(JsonToolkit.fromJson(rootNode, "configuration.addOnly"))
     en.ignoreLastChanged = Boolean.valueOf(JsonToolkit.fromJson(rootNode, "configuration.ignoreLastChanged"))
     en.isZdbIntegrated = Boolean.valueOf(JsonToolkit.fromJson(rootNode, "configuration.isZdbIntegrated"))
@@ -487,7 +487,7 @@ class Enrichment{
     MultiField multiField = new MultiField(tippNameMapping)
     for (String recId in dataContainer.records){
       Record record = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
-      multiField.validateContent(dataContainer.info.namespace_title_id)
+      multiField.validateContent(dataContainer.namespace_title_id)
       record.addMultiField(multiField)
       record.save(enrichmentFolder, resultHash)
     }
@@ -516,7 +516,7 @@ class Enrichment{
     greenRecords = new TreeMap<>()
     yellowRecords = new TreeMap<>()
     redRecords = new TreeMap<>()
-    String namespace = dataContainer.info.namespace_title_id
+    String namespace = dataContainer.namespace_title_id
     for (String recId in dataContainer.records){
       Record record = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
       record.normalize(namespace)

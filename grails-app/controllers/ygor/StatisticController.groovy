@@ -255,7 +255,7 @@ class StatisticController implements ControllersHelper{
 
     try{
       Enrichment enrichment = getEnrichment(resultHash)
-      String namespace = enrichment.dataContainer.info.namespace_title_id
+      String namespace = enrichment.dataContainer.namespace_title_id
       if (enrichment){
         String enrichmentFolder = enrichment.sessionFolder.absolutePath.concat(File.separator).concat(resultHash).concat(File.separator)
         record = Record.load(enrichmentFolder, resultHash, params['uid'], enrichment.mappingsContainer)
@@ -554,7 +554,7 @@ class StatisticController implements ControllersHelper{
     Record record
     try{
       Enrichment enrichment = getEnrichment(params.resultHash)
-      String namespace = enrichment.dataContainer.info.namespace_title_id
+      String namespace = enrichment.dataContainer.namespace_title_id
       if (enrichment){
         record = enrichment.dataContainer.records.get(params.record.uid)
         for (def flagId in params.flags){

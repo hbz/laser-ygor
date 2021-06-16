@@ -114,7 +114,7 @@ class GokbExporter {
         tipp = removeEmptyFields(tipp)
         tipp = removeEmptyIdentifiers(tipp, type)
         tipp.set("title", postProcessPublicationTitle(tipp.get("title"), record))
-        tipp = postProcessTitleIdentifiers(tipp, type, enrichment.dataContainer.info.namespace_title_id)
+        tipp = postProcessTitleIdentifiers(tipp, type, enrichment.dataContainer.namespace_title_id)
         tipps.add(tipp)
       }
     }
@@ -189,7 +189,7 @@ class GokbExporter {
       title = removeEmptyFields(title)
       title = removeEmptyIdentifiers(title, FileType.TITLES)
       title = removeEmptyPrices(title)
-      title = postProcessTitleIdentifiers(title, FileType.TITLES, enrichment.dataContainer.info.namespace_title_id)
+      title = postProcessTitleIdentifiers(title, FileType.TITLES, enrichment.dataContainer.namespace_title_id)
       if (printPretty){
         return JSON_OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(title)
       }
@@ -281,7 +281,7 @@ class GokbExporter {
     log.debug("parsing package header finished")
 
     ObjectNode stats = new ObjectNode(NODE_FACTORY)
-    stats.put("kbartLines", enrichment.kbartReader?.lastItemReturned?.recordNumber?.toString())
+    stats.put("kbartLines", enrichment.baseDataReader?.lastItemReturned?.recordNumber?.toString())
     stats.put("recordsTotalCreated", enrichment.dataContainer.records?.size().toString())
     stats.put("recordsValid", String.valueOf(enrichment.greenRecords?.size() + enrichment.yellowRecords.size()))
     stats.put("recordsInvalid", String.valueOf(enrichment.redRecords?.size()))
