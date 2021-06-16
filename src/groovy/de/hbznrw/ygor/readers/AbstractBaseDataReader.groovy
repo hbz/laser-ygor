@@ -11,6 +11,7 @@ import java.time.LocalDate
 abstract class AbstractBaseDataReader{
 
   String dataFileName
+  static String IDENTIFIER = "basedata"
 
   abstract Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged)
 

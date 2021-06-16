@@ -354,12 +354,12 @@
                                 <span class="form-control">
                                     <div class="checkbox">
                                         <label>
-                                            <g:checkBox name="processOption" required="true" checked="true" value="${KbartReader.IDENTIFIER}"/>
+                                            <g:checkBox name="processOption" required="true" checked="true" value="${AbstractBaseDataReader.IDENTIFIER}"/>
                                             KBart <code><g:message code="listDocuments.enrichment.file" /></code>
                                         </label>
                                     &nbsp;
                                         <label>
-                                            <g:if test="${session.lastUpdate?.pmOptions?.contains(ZdbReader.IDENTIFIER)}">
+                                            <g:if test="${session.lastUpdateprocessOption?.pmOptions?.contains(ZdbReader.IDENTIFIER)}">
                                                 <g:checkBox name="processOption" checked="true" value="${ZdbReader.IDENTIFIER}" />
                                             </g:if>
                                             <g:else>

@@ -166,8 +166,6 @@ class Enrichment{
     }
     resultName = FileToolkit.getDateTimePrefixedFileName(originName)
     ygorVersion = options.get('ygorVersion')
-    dataContainer.info.file = originName
-    dataContainer.info.type = options.get('ygorType')
     thread = new MultipleProcessingThread(this, options, baseDataReader, ygorFeedback)
     thread.start()
   }

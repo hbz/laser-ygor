@@ -119,17 +119,19 @@ class MultipleProcessingThread extends Thread {
   synchronized private void enrich(){
     for (String call : apiCalls){
       switch (call){
-        case KbartReader.IDENTIFIER:
-          KbartReaderConfiguration conf =
-              new KbartReaderConfiguration(quote, quoteMode, recordSeparator)
-          KbartIntegrationService kbartIntegrationService = new KbartIntegrationService(enrichment.mappingsContainer)
-          calculateProgressIncrement(enrichment.sessionFolder.absolutePath)
-          kbartIntegrationService.integrate(this, enrichment.dataContainer, conf)
-          break
-        case Onix2Reader.IDENTIFIER:
-          OnixIntegrationService onixIntegrationService = new OnixIntegrationService(enrichment.mappingsContainer)
-          calculateProgressIncrement(enrichment.sessionFolder.absolutePath)
-          onixIntegrationService.integrate(this, enrichment.dataContainer)
+        case AbstractBaseDataReader.IDENTIFIER:
+          if (enrichment.baseDataReader instanceof KbartReader){
+            KbartReaderConfiguration conf =
+                new KbartReaderConfiguration(quote, quoteMode, recordSeparator)
+            KbartIntegrationService kbartIntegrationService = new KbartIntegrationService(enrichment.mappingsContainer)
+            calculateProgressIncrement(enrichment.sessionFolder.absolutePath)
+            kbartIntegrationService.integrate(this, enrichment.dataContainer, conf)
+          }
+          else if (enrichment.baseDataReader instanceof Onix2Reader){
+            OnixIntegrationService onixIntegrationService = new OnixIntegrationService(enrichment.mappingsContainer)
+            calculateProgressIncrement(enrichment.sessionFolder.absolutePath)
+            onixIntegrationService.integrate(this, enrichment.dataContainer)
+          }
           break
         case EzbReader.IDENTIFIER:
           enrichment.isEzbIntegrated = true
