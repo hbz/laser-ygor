@@ -27,4 +27,14 @@ abstract class AbstractBaseDataReader{
     }
   }
 
+  static boolean hasFileValidExtension(File file, List<String> validExtensions) throws IllegalFormatException{
+    String fileName = file.getAbsolutePath()
+    int lastDotIndex = fileName.lastIndexOf(".")
+    if (lastDotIndex < 0){
+      throw new IllegalFormatException("File name \"$fileName\" missing extension.")
+    }
+    String extension = fileName.substring(lastDotIndex+1, fileName.size())
+    return extension in validExtensions
+  }
+
 }

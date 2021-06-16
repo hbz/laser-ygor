@@ -8,13 +8,9 @@ import org.apache.commons.csv.CSVRecord
 import org.apache.commons.csv.QuoteMode
 import org.apache.commons.lang.StringUtils
 import org.codehaus.groovy.grails.plugins.web.taglib.ValidationTagLib
-
 import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.time.LocalDate
-
 import ygor.EnrichmentService
-
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -289,8 +285,10 @@ class KbartReader extends AbstractBaseDataReader{
 
   @Override
   static boolean isValidFile(File file){
-    // TODO
-    return false
+    if (!hasFileValidExtension(file, ["tsv", "csv", "ssv", "txt"] as ArrayList<String>)){
+      return false
+    }
+    return true
   }
 
 

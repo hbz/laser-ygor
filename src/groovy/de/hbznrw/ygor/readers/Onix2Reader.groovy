@@ -46,8 +46,10 @@ class Onix2Reader extends AbstractOnixReader{
 
   @Override
   static boolean isValidFile(File file){
-    // TODO
-    return false
+    if (!hasFileValidExtension(file, ["xml"] as ArrayList<String>)){
+      return false
+    }
+    return true
   }
 
 
