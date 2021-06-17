@@ -79,7 +79,7 @@
       "undefined" : [{"serial" : "warning", "monograph" : "warning", "other" : "ok"}]
     },
     "value" : {
-      "allowedValues" : ["fulltext", "full text", "volltext"]
+      "allowedValues" : ["fulltext", "full text", "volltext", "selected articles", "abstracts"]
     }
   },
   {
