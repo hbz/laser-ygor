@@ -74,9 +74,12 @@
     "type" : "String",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
-      "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "ok"}],
-      "missing" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "warning"}],
+      "missing" : [{"serial" : "warning", "monograph" : "warning", "other" : "warning"}],
       "undefined" : [{"serial" : "warning", "monograph" : "warning", "other" : "ok"}]
+    },
+    "value" : {
+      "allowedValues" : ["fulltext", "full text", "volltext", "selected articles", "abstracts"]
     }
   },
   {
