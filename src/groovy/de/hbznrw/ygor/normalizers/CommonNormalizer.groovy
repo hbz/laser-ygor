@@ -7,6 +7,9 @@ class CommonNormalizer {
 
   static String normalize(MultiField field, String type, String namespace) {
     String value = MultiField.extractFixedValue(field.getFirstPrioValue())
+    if (value != null){
+      value = value.replaceAll("(^\\h*)|(\\h*\$)", "")                     // trim horizontal whitespace chars
+    }
     switch (type) {
       case "Title":
         return StringNormalizer.normalizeString(value, true)

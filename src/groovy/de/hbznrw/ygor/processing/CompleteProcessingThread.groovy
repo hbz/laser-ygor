@@ -24,6 +24,7 @@ class CompleteProcessingThread extends Thread {
   UploadJobFrame uploadJobFrame
   File localFile
   boolean ignoreLastChanged
+  YgorFeedback ygorFeedback
 
   /**
    * used by EnrichmentController.processGokbPackage()
@@ -41,13 +42,16 @@ class CompleteProcessingThread extends Thread {
     this.token = token
     this.uploadJobFrame = uploadJobFrame
     this.localFile = file
-    this.addOnly
+    this.addOnly = addOnly
     this.ignoreLastChanged = ignoreLastChanged
+    ygorFeedback = uploadJobFrame?.ygorFeedback ?: new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "",
+        this.getClass(), null, null, null, null)
   }
 
 
   @Override
   void run() throws Exception {
+    ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.RUNNING
     enrichmentService.addUploadJob(uploadJobFrame)
     String sessionFolder = grails.util.Holders.grailsApplication.config.ygor.uploadLocation.toString()
         .concat(File.separator).concat(UUID.randomUUID().toString())
@@ -71,12 +75,16 @@ class CompleteProcessingThread extends Thread {
       if (updateUrls.size() > 0) {
         while(urlsIterator.hasPrevious()){
           URL url = urlsIterator.previous()
+          ygorFeedback.processedData.put("url", url.toString())
           try {
-            kbartReader = enrichmentService.kbartReader = new KbartFromUrlReader(url, new File(sessionFolder), locale)
+            kbartReader = enrichmentService.kbartReader = new KbartFromUrlReader(url, new File(sessionFolder), locale, ygorFeedback)
           }
           catch (Exception e) {
+            ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
+            ygorFeedback.exceptions.add(e)
+            ygorFeedback.statusDescription = "ERROR while trying to read file!"
             e.printStackTrace()
-            log.error("ERROR while trying to read file!")
+            log.error(ygorFeedback.statusDescription)
             continue
           }
 
@@ -93,7 +101,7 @@ class CompleteProcessingThread extends Thread {
           }
           enrichment.originPathName = kbartReader.fileName
           enrichment.ignoreLastChanged = ignoreLastChanged
-          UploadJob uploadJob = enrichmentService.processComplete(uploadJobFrame, enrichment, null, null, true)
+          UploadJob uploadJob = enrichmentService.processComplete(uploadJobFrame, enrichment, null, null, true, ygorFeedback)
           enrichmentService.addUploadJob(uploadJob)                             // replacing uploadJobFrame with same uuid
           if (uploadJob == null){
             log.error("Could not upload processed package ${pkg.id} with uuid ${pkg.uuid}")
@@ -124,7 +132,7 @@ class CompleteProcessingThread extends Thread {
         log.info("Prepared enrichment ${enrichment.originName}.")
 
         enrichment.originPathName = kbartReader.fileName
-        UploadJob uploadJob = enrichmentService.processComplete(uploadJobFrame, enrichment, null, null, false)
+        UploadJob uploadJob = enrichmentService.processComplete(uploadJobFrame, enrichment, null, null, false, ygorFeedback)
         enrichmentService.addUploadJob(uploadJob)
       }
       catch (Exception e) {

@@ -8,6 +8,7 @@ import de.hbznrw.ygor.export.structure.PackageHeaderNominalPlatform
 import de.hbznrw.ygor.export.structure.PackageHeaderNominalProvider
 import de.hbznrw.ygor.normalizers.DateNormalizer
 import de.hbznrw.ygor.processing.MultipleProcessingThread
+import de.hbznrw.ygor.processing.YgorFeedback
 import de.hbznrw.ygor.readers.KbartReader
 import de.hbznrw.ygor.tools.FileToolkit
 import de.hbznrw.ygor.tools.JsonToolkit
@@ -93,11 +94,13 @@ class Enrichment{
 
   Map<FileType, Boolean> hasBeenUploaded = new HashMap<>()
 
+  YgorFeedback ygorFeedback
+
   static constraints = {
   }
 
 
-  Enrichment(File sessionFolder, String originalFilename){
+  Enrichment(File sessionFolder, String originalFilename, YgorFeedback ygorFeedback){
     this.sessionFolder = sessionFolder
     originName = originalFilename.replaceAll(/\s+/, '_')
     originHash = FileToolkit.getMD5Hash(originName + Math.random())
@@ -115,6 +118,7 @@ class Enrichment{
     transferredFile = null
     markDuplicates = false
     ignoreLastChanged = false
+    this.ygorFeedback = ygorFeedback
   }
 
 
@@ -128,12 +132,16 @@ class Enrichment{
 
 
   static Enrichment fromFilename(String filename){
-    return new Enrichment(EnrichmentService.getSessionFolder(), filename)
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
+        "Creating Enrichment from file ${filename} .", this.getClass(), null, null, null, null)
+    return new Enrichment(EnrichmentService.getSessionFolder(), filename, ygorFeedback)
   }
 
 
   static Enrichment fromFilename(String sessionFolder, String filename) throws Exception{
-    return new Enrichment(new File(sessionFolder), filename)
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
+        "Creating Enrichment from file ${sessionFolder}/${filename} .", this.getClass(), null, null, null, null)
+    return new Enrichment(new File(sessionFolder), filename, ygorFeedback)
   }
 
 
@@ -149,8 +157,9 @@ class Enrichment{
   /**
    * Ygor's central processing method.
    */
-  def process(HashMap options, KbartReader kbartReader) throws Exception{
+  def process(HashMap options, KbartReader kbartReader, YgorFeedback ygorFeedback) throws Exception{
     log.debug("Start processing enrichment ${originName}.")
+    ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.PREPARATION
     this.kbartReader = kbartReader
     if (kbartReader.fileNameDate){
       this.fileNameDate = DateNormalizer.YYYY_MM_DD.format(kbartReader.fileNameDate)
@@ -159,7 +168,7 @@ class Enrichment{
     ygorVersion = options.get('ygorVersion')
     dataContainer.info.file = originName
     dataContainer.info.type = options.get('ygorType')
-    thread = new MultipleProcessingThread(this, options, kbartReader)
+    thread = new MultipleProcessingThread(this, options, kbartReader, ygorFeedback)
     thread.start()
   }
 
@@ -206,7 +215,7 @@ class Enrichment{
 
 
   File getAsFile(FileType type, boolean validate){
-    // by now, the only export file type is for GOKb, so call GOKbExporter
+    // by now, the only export file type is for GOKb and alike, so call GOKbExporter
     return GokbExporter.getFile(this, type, validate)
   }
 
@@ -315,7 +324,9 @@ class Enrichment{
   static Enrichment fromRawJson(JsonNode rootNode, boolean loadRecordData){
     String sessionFolder = JsonToolkit.fromJson(rootNode, "sessionFolder")
     String originalFileName = JsonToolkit.fromJson(rootNode, "originalFileName")
-    def en = new Enrichment(new File(sessionFolder), originalFileName)
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
+        "Creating Enrichment from raw Json using $originalFileName .", this.getClass(), null, null, null, null)
+    def en = new Enrichment(new File(sessionFolder), originalFileName, ygorFeedback)
     en.ygorVersion = JsonToolkit.fromJson(rootNode, "ygorVersion") // TODO compare with current version and abort?
     en.lastProcessingDate = JsonToolkit.fromJson(rootNode, "lastProcessingDate")
     en.originHash = JsonToolkit.fromJson(rootNode, "originHash")

@@ -1,8 +1,10 @@
 package de.hbznrw.ygor.processing
 
+import groovy.util.logging.Log4j
 import ygor.Enrichment
 
 
+@Log4j
 abstract class UploadThreadGokb extends Thread{
 
   Enrichment enrichment
@@ -14,6 +16,7 @@ abstract class UploadThreadGokb extends Thread{
   int count = 0
   String locale
   Status status
+  YgorFeedback ygorFeedback
 
   abstract Map getResultsTable()
 
@@ -25,6 +28,7 @@ abstract class UploadThreadGokb extends Thread{
       if (responseStatus == null && status == Status.STARTED){
         if (result.size() > 0 && result[0].get("error") != null){
           status = Status.ERROR
+          log.info("Turned UploadThread status to $Status.ERROR .")
           return
         }
       }

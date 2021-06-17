@@ -2,9 +2,11 @@ package ygor
 
 import de.hbznrw.ygor.processing.CompleteProcessingThread
 import de.hbznrw.ygor.processing.UploadThreadGokb
+import de.hbznrw.ygor.processing.YgorFeedback
 import de.hbznrw.ygor.readers.KbartFromUrlReader
 import de.hbznrw.ygor.readers.KbartReader
 import grails.converters.JSON
+import grails.util.Holders
 import groovy.util.logging.Log4j
 import org.apache.commons.collections.MapUtils
 import org.apache.commons.io.FileUtils
@@ -22,6 +24,7 @@ class EnrichmentController implements ControllersHelper{
   EnrichmentService enrichmentService
   GokbService gokbService
   KbartReader kbartReader
+  def allCuratoryGroups
 
   def index = {
     redirect(action: 'process')
@@ -32,7 +35,7 @@ class EnrichmentController implements ControllersHelper{
     SessionService.setSessionDuration(request, 3600)
     def namespace_list = gokbService.getNamespaceList(grailsApplication.config.gokbApi.namespaceCategory)
     def namespace_doi_list = []
-    def gokb_cgs = gokbService.getCurrentCuratoryGroupsList()
+    allCuratoryGroups = gokbService.getCurrentCuratoryGroupsList()
     namespace_doi_list.addAll(namespace_list)
     namespace_doi_list  << [id: 'doi', text: 'doi']
     Enrichment en = getCurrentEnrichment()
@@ -48,7 +51,7 @@ class EnrichmentController implements ControllersHelper{
             gokbService       : gokbService,
             pkg_namespaces    : namespace_list,
             record_namespaces : namespace_doi_list,
-            curatoryGroups    : gokb_cgs,
+            curatoryGroups    : allCuratoryGroups,
             currentView       : 'process'
         ]
     )
@@ -99,6 +102,8 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadFile = {
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading file. ", this.getClass(), null,
+        null, null, null)
     SessionService.setSessionDuration(request, 3600)
     def file = request.getFile('uploadFile')
     if (file.size < 1 && request.parameterMap.uploadFileLabel != null &&
@@ -106,22 +111,25 @@ class EnrichmentController implements ControllersHelper{
       // the file form is unpopulated but the previously selected file is unchanged
       file = request.session.lastUpdate.file
     }
-
     String encoding = enrichmentService.getEncoding(file.getInputStream(), null)
     if (encoding && encoding != "UTF-8"){
       flash.info = null
       flash.warning = null
-      flash.error = message(code: 'error.kbart.invalidEncoding').toString().concat("<br>")
-          .concat(message(code: 'error.kbart.messageFooter').toString())
+      String invalidEncoding = message(code: 'error.kbart.invalidEncoding').toString()
+      String messageFooter = message(code: 'error.kbart.messageFooter').toString()
+      flash.error = invalidEncoding.concat("<br>").concat(messageFooter)
+      ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
+      ygorFeedback.statusDescription += flash.error
       redirect(
-          action: 'process'
+          action: 'process',
+          model: [
+              ygorFeedback : ygorFeedback
+          ]
       )
       return
     }
-
     def addOnly = false
     setInputFieldDataToLastUpdate(file, null, addOnly)
-
     if (file.empty){
       flash.info = null
       flash.warning = null
@@ -136,7 +144,8 @@ class EnrichmentController implements ControllersHelper{
           ],
           model: [
               enrichment : enrichment,
-              currentView: 'process'
+              currentView: 'process',
+              ygorFeedback : ygorFeedback
           ]
       )
       return
@@ -155,7 +164,8 @@ class EnrichmentController implements ControllersHelper{
           ],
           model: [
               enrichment : enrichment,
-              currentView: 'process'
+              currentView: 'process',
+              ygorFeedback : ygorFeedback
           ]
       )
     }
@@ -164,7 +174,6 @@ class EnrichmentController implements ControllersHelper{
       flash.warning = null
       flash.error = ype.getMessage()
       Enrichment enrichment = getCurrentEnrichment()
-
       render(
           view: 'process',
           params: [
@@ -173,7 +182,8 @@ class EnrichmentController implements ControllersHelper{
           ],
           model: [
               enrichment : enrichment,
-              currentView: 'process'
+              currentView: 'process',
+              ygorFeedback : ygorFeedback
           ]
       )
       return
@@ -182,6 +192,8 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadUrl = {
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading URL. ",
+        this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 3600)
     def urlString = request.parameterMap["uploadUrlText"][0]
     // validate
@@ -208,7 +220,7 @@ class EnrichmentController implements ControllersHelper{
     enrichment.processingOptions = null
     enrichment.locale = request.locale
     try {
-      kbartReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale)
+      kbartReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale, ygorFeedback)
       kbartReader.checkHeader()
     }
     catch (Exception e) {
@@ -224,7 +236,8 @@ class EnrichmentController implements ControllersHelper{
           ],
           model: [
               enrichment : enrichment,
-              currentView: 'process'
+              currentView: 'process',
+              ygorFeedback : ygorFeedback
           ]
       )
       return
@@ -236,7 +249,6 @@ class EnrichmentController implements ControllersHelper{
     }
     enrichment.addFileAndFormat()
     enrichment.status = Enrichment.ProcessingState.PREPARE_1
-
     redirect(
         action: 'process',
         params: [
@@ -245,7 +257,8 @@ class EnrichmentController implements ControllersHelper{
         ],
         model: [
             enrichment : enrichment,
-            currentView: 'process'
+            currentView: 'process',
+            ygorFeedback : ygorFeedback
         ]
     )
   }
@@ -311,12 +324,13 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processGokbPackage(){
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing Knowledge Base package. ", this.getClass(), null,
+        null, null, null)
     SessionService.setSessionDuration(request, 72000)
     String sessionFolder = grails.util.Holders.grailsApplication.config.ygor.uploadLocation.toString()
         .concat(File.separator).concat(UUID.randomUUID().toString())
     Map<String, String> result = [:]
     List<String> missingParams = []
-    String attachedFilePath = null
     CommonsMultipartFile mpFile = params.localFile ? request.getFile('uploadFile') : null
     String addOnly = params.addOnly ?: 'false'
     String pkgId = params.get('pkgId')
@@ -343,7 +357,6 @@ class EnrichmentController implements ControllersHelper{
       transferredFile = new File(sessionFolder, pkg.name)
       FileUtils.writeByteArrayToFile(transferredFile, mpFile.getBytes())
     }
-
     if (MapUtils.isEmpty(pkg)){
       result.status = UploadThreadGokb.Status.ERROR.toString()
       response.status = 404
@@ -355,7 +368,7 @@ class EnrichmentController implements ControllersHelper{
       result.message = "No source found for package with id $pkgId"
     }
     else{
-      UploadJobFrame uploadJobFrame = new UploadJobFrame(Enrichment.FileType.PACKAGE_WITH_TITLEDATA)
+      UploadJobFrame uploadJobFrame = new UploadJobFrame(Enrichment.FileType.PACKAGE_WITH_TITLEDATA, ygorFeedback)
       CompleteProcessingThread completeProcessingThread = new CompleteProcessingThread(kbartReader, pkg, src, token,
           uploadJobFrame, transferredFile, addOnly, ignoreLastChanged)
       try {
@@ -364,12 +377,14 @@ class EnrichmentController implements ControllersHelper{
         response.status = 200
         result.message = "Started upload job for package $pkgId"
         result.jobId = uploadJobFrame.uuid
+        result.ygorFeedback = ygorFeedback
       }
       catch(Exception e){
         e.printStackTrace()
         result.status = UploadThreadGokb.Status.ERROR.toString()
         response.status = 500
         result.message = "Unable to process KBART file at the specified source url. Exception was: ".concat(e.message)
+        result.ygorFeedback = ygorFeedback
       }
     }
     render result as JSON
@@ -390,12 +405,15 @@ class EnrichmentController implements ControllersHelper{
    * Content-Disposition: form-data; name="uploadFile"; filename="yourKBartTestFile.tsv"
    */
   def processCompleteWithToken(){
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
+        "Complete processing with token authentication. ", this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 72000)
     def result = [:]
     Enrichment enrichment = buildEnrichmentFromRequest()
-    UploadJob uploadJob = enrichmentService.processComplete(enrichment, null, null, false, true)
+    UploadJob uploadJob = enrichmentService.processComplete(enrichment, null, null, false, true, ygorFeedback)
     enrichmentService.addUploadJob(uploadJob)
     result.message = watchUpload(uploadJob, Enrichment.FileType.PACKAGE, enrichment.originName)
+    result.ygorFeedback = ygorFeedback
     render result as JSON
   }
 
@@ -404,7 +422,7 @@ class EnrichmentController implements ControllersHelper{
     def en = getCurrentEnrichment()
     if (en){
       def pkg = enrichmentService.getPackage(params.uuid, null, null, null)
-      if (pkg == null){
+      if (pkg == null || pkg.responseStatus == "error"){
         return
       }
       String isil = ""
@@ -430,35 +448,31 @@ class EnrichmentController implements ControllersHelper{
     }
   }
 
+
   private String getTippNamespace(Map<String, Object> pkg){
-    List<Object> allTitleIdNamespaces = gokbService.getNamespaceList(grailsApplication.config.gokbApi.namespaceCategory)
-    List<String> allTitleIdNamespacesValues = []
-    for (def namespace in allTitleIdNamespaces){
-      if (!StringUtils.isEmpty(namespace.id)){
-        allTitleIdNamespacesValues.add(namespace.id)
-      }
+    String result = null
+    String platformUuid = pkg?.nominalPlatform?.uuid
+    if (StringUtils.isEmpty(platformUuid)){
+      return result
     }
-    List<Object> tippContent = enrichmentService.getTippsOfPackage(pkg.uuid, 5)?.records
-    if (tippContent != null){
-      for (def tipp in tippContent){
-        if (tipp.identifiers != null){
-          for (def identifier in tipp.identifiers){
-            if (identifier.namespace in allTitleIdNamespacesValues){
-              return identifier.namespace
-            }
-          }
-        }
-      }
+    def platformQueryUri = Holders.config.gokbApi.xrFindUriStub.toString()
+        .concat("?componentType=Platform&uuid=${platformUuid}")
+    def platform = EnrichmentService.gokbRestApiRequest(platformQueryUri, null, null, null)
+    if (platform?.records){
+      result = platform.records[0]?.titleNamespace
     }
+    return result
   }
 
 
   def ajaxGetCuratoryGroups = {
     def result = [:]
     result["items"] = []
-    for (def curatoryGroup in gokbService.getCurrentCuratoryGroupsList()){
-      curatoryGroup.id = curatoryGroup.get("text")
-      result["items"] << curatoryGroup
+    for (def curatoryGroup in allCuratoryGroups){
+      if (StringUtils.isEmpty(params.q) || curatoryGroup.get("text").toLowerCase().contains(params.q.toLowerCase())){
+        curatoryGroup.id = curatoryGroup.get("text")
+        result["items"] << curatoryGroup
+      }
     }
     render result as JSON
   }
@@ -505,6 +519,7 @@ class EnrichmentController implements ControllersHelper{
 
   def getStatus(){
     String jobId = params.get('jobId')
+    log.debug("Received status request for uploadJob $jobId.")
     def result = [:]
     UploadJobFrame uploadJob = enrichmentService.getUploadJob(jobId)
     if (uploadJob == null){
@@ -513,25 +528,29 @@ class EnrichmentController implements ControllersHelper{
       result.message = "No job found for this id."
       render result as JSON
     }
-    else if (uploadJob instanceof UploadJob) {
+    else if (uploadJob instanceof UploadJob){
+      log.debug("Upload job $jobId is instance of UploadJob.")
       uploadJob.updateCount()
       uploadJob.refreshStatus()
       result.status = uploadJob.getStatus().toString()
       result.gokbJobId = uploadJob.uploadThread?.gokbJobId
       render result as JSON
     }
-    else if (uploadJob.status == UploadThreadGokb.Status.ERROR) {
+    else if (uploadJob.status == UploadThreadGokb.Status.ERROR){
       result.status = UploadThreadGokb.Status.ERROR.toString()
       response.status = 400
       result.message = "There was an error processing this job."
+      log.info("There was an error processing job $jobId .")
       render result as JSON
     }
-    else if (uploadJob.status == UploadThreadGokb.Status.FINISHED_UNDEFINED) {
+    else if (uploadJob.status == UploadThreadGokb.Status.FINISHED_UNDEFINED){
+      log.info("UploadJob $jobId finished in an undefined status.")
       result.status = UploadThreadGokb.Status.FINISHED_UNDEFINED.toString()
       result.message = "No URLs processed."
       render result as JSON
     }
     else{
+      log.debug("UploadJob $jobId is still in frame status.")
       // uploadJob is instance of UploadJobFrame
       result.status = UploadThreadGokb.Status.PREPARATION.toString()
       render result as JSON
@@ -562,8 +581,11 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processFile = {
+    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing file. ", this.getClass(), null,
+        null, null, null)
     SessionService.setSessionDuration(request, 72000)
     def en = getCurrentEnrichment()
+    ygorFeedback.processedData.put("enrichment", en.originName)
     try{
       def pmOptions = request.parameterMap['processOption']
       if (en.status != Enrichment.ProcessingState.WORKING){
@@ -592,7 +614,7 @@ class EnrichmentController implements ControllersHelper{
                 'ygorType'   : grailsApplication.config.ygor.type
             ]
             en.processingOptions = Arrays.asList(pmOptions)
-            en.process(options, kbartReader)
+            en.process(options, kbartReader, ygorFeedback)
           }
         }
       }
@@ -606,7 +628,8 @@ class EnrichmentController implements ControllersHelper{
             ],
             model: [
                 enrichment : en,
-                currentView: 'process'
+                currentView: 'process',
+                ygorFeedback : ygorFeedback
             ]
         )
       }
@@ -620,12 +643,15 @@ class EnrichmentController implements ControllersHelper{
             ],
             model: [
                 enrichment : en,
-                currentView: 'process'
+                currentView: 'process',
+                ygorFeedback : ygorFeedback
             ]
         )
       }
     }
     catch(Exception e){
+      ygorFeedback.exceptions << e
+      ygorFeedback.statusDescription += "Exception occurred during processFile."
       setErrorStatus(en)
       redirect(action: 'process')
     }
@@ -741,7 +767,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def gokbNameSpaces = {
-    log.debug("Getting namespaces of connected GOKb instance..")
+    log.debug("Getting namespaces of connected Knowledge Base instance..")
     def result = [:]
     result.items = gokbService.getNamespaceList(grailsApplication.config.gokbApi.namespaceCategory)
     render result as JSON

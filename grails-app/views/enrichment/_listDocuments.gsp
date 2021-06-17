@@ -43,7 +43,7 @@
                         </div>
                         <g:if test="${enrichment.status == Enrichment.ProcessingState.PREPARE_1}">
                             <div class="input-group">
-                                <span class="input-group-addon"><em>GOKb</em> Curatory Group</span>
+                                <span class="input-group-addon">Knowledge Base Curatory Group</span>
                                 <select class="dynamic-options form-control" name="pkgCuratoryGroup" id="pkgCuratoryGroup">
                                     <option></option>
                                     <g:each in="${curatoryGroups}" var="cg">
@@ -101,12 +101,12 @@
                             </div>
                             <br />
                             <div class="input-group">
-                                <span class="input-group-addon"><em>GOKb</em> <g:message code="listDocuments.key.platform" /></span>
+                                <span class="input-group-addon">Knowledge Base <g:message code="listDocuments.key.platform" /></span>
                                 <select name="pkgNominalPlatform" id="pkgNominalPlatform" required></select>
                             </div>
                             <br />
                             <div class="input-group">
-                                <span class="input-group-addon"><em>GOKb</em> <g:message code="listDocuments.key.provider" /></span>
+                                <span class="input-group-addon">Knowledge Base <g:message code="listDocuments.key.provider" /></span>
                                 <select name="pkgNominalProvider" id="pkgNominalProvider" required></select>
                             </div>
                             <br />
@@ -150,7 +150,7 @@
                                         allowClear: true,
                                         placeholder: '${message(code:"listDocuments.js.placeholder.package")}',
                                         debug: true,
-                                        tags: true,
+                                        tags: false,
                                         templateSelection: function (data) {
                                             // Add custom attributes to the <option> tag for the selected option
                                             $(data.element).attr('value', data.findFilter);
@@ -207,7 +207,9 @@
                                                 $('#pkgNominalPlatform').append($('<option selected="selected"></option>').attr('value', platform).text(platform));
                                                 $("#pkgNominalPlatform").attr('disabled', 'disabled');
                                                 var tippNamespace = data.tippNamespace;
-                                                $('#pkgTitleId').append($('<option selected="selected"></option>').attr('value', tippNamespace).text(tippNamespace));
+                                                if (tippNamespace != "null"){
+                                                    $('#pkgTitleId').append($('<option selected="selected"></option>').attr('value', tippNamespace).text(tippNamespace));
+                                                }
                                                 $("#pkgTitleId").attr('disabled', 'disabled');
                                             },
                                             error:function(XMLHttpRequest, textStatus, errorThrown){
@@ -221,6 +223,7 @@
                                     $('#pkgCuratoryGroup').select2({
                                         allowClear: true,
                                         placeholder: '${message(code:"listDocuments.js.placeholder.curatorygroup")}',
+                                        tags: false,
                                         debug: true,
                                         templateSelection: function (data) {
                                             // Add custom attributes to the <option> tag for the selected option
@@ -320,7 +323,7 @@
                                     message(code:'listDocuments.js.message.noplatformname') +
                                     raw('</div>')}
                             <div class="input-group custom-control">
-                                <span class="input-group-addon"><em>GOKb</em> <g:message code="listDocuments.key.platformname" /></span>
+                                <span class="input-group-addon">Knowledge Base <g:message code="listDocuments.key.platformname" /></span>
                                 <span class="form-control" >${enrichment.dataContainer?.pkgHeader?.nominalPlatform.name}</span>
                             </div>
                             <br />
@@ -329,7 +332,7 @@
                                     message(code:'listDocuments.js.message.noplatformurl') +
                                     raw('</div>')}
                             <div class="input-group">
-                                <span class="input-group-addon"><em>GOKb</em>  <g:message code="listDocuments.key.platformurl" /></span>
+                                <span class="input-group-addon">Knowledge Base  <g:message code="listDocuments.key.platformurl" /></span>
                                 <span class="form-control" >${enrichment.dataContainer?.pkgHeader?.nominalPlatform.url}</span>
                             </div>
                             <br />
@@ -338,7 +341,7 @@
                                     message(code:'listDocuments.js.message.noprovider') +
                                     raw('</div>')}
                             <div class="input-group">
-                                <span class="input-group-addon"><em>GOKb</em> <g:message code="listDocuments.key.provider" /></span>
+                                <span class="input-group-addon">Knowledge Base <g:message code="listDocuments.key.provider" /></span>
                                 <span class="form-control" >${enrichment.dataContainer?.pkgHeader?.nominalProvider.name}</span>
                             </div>
                             <br />

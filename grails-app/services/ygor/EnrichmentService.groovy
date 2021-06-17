@@ -3,6 +3,7 @@ package ygor
 import de.hbznrw.ygor.export.structure.Pod
 import de.hbznrw.ygor.processing.SendPackageThreadGokb
 import de.hbznrw.ygor.processing.UploadThreadGokb
+import de.hbznrw.ygor.processing.YgorFeedback
 import de.hbznrw.ygor.readers.KbartFromUrlReader
 import de.hbznrw.ygor.readers.KbartReader
 import grails.util.Holders
@@ -140,7 +141,7 @@ class EnrichmentService{
   /**
    * @param resultFields Optional. All fields are returned if left empty.
    */
-  Map<String, Object> gokbRestApiRequest(@Nonnull String uri, String user, String password, List<String> resultFields){
+  static Map<String, Object> gokbRestApiRequest(@Nonnull String uri, String user, String password, List<String> resultFields){
     if (StringUtils.isEmpty(uri)){
       return null
     }
@@ -351,11 +352,12 @@ class EnrichmentService{
   /**
    * used by AutoUpdateService
    */
-  UploadJob buildCompleteUpdateProcess(Enrichment enrichment){
+  UploadJob buildCompleteUpdateProcess(Enrichment enrichment, YgorFeedback ygorFeedback){
     try{
       String urlString = StringUtils.isEmpty(enrichment.updateUrl) ? enrichment.originUrl : enrichment.updateUrl
       URL originUrl = new URL(urlString)
-      kbartReader = new KbartFromUrlReader(originUrl, enrichment.sessionFolder, LocaleUtils.toLocale(enrichment.locale))
+      kbartReader = new KbartFromUrlReader(originUrl, enrichment.sessionFolder, LocaleUtils.toLocale(enrichment.locale),
+          ygorFeedback)
       enrichment.dataContainer.records = []
       new File(enrichment.enrichmentFolder).mkdirs()
       return processComplete(enrichment, null, null, true, true)
@@ -372,9 +374,9 @@ class EnrichmentService{
    * used by EnrichmentController --> processCompleteWithToken
    */
   UploadJob processComplete(Enrichment enrichment, String gokbUsername, String gokbPassword, boolean isUpdate,
-                            boolean needsPreciseClassification, boolean waitForFinish) {
+                            boolean needsPreciseClassification, boolean waitForFinish, YgorFeedback ygorFeedback) {
     UploadJobFrame uploadJob = new UploadJobFrame(Enrichment.FileType.PACKAGE_WITH_TITLEDATA)
-    return processComplete(uploadJob, enrichment, gokbUsername, gokbPassword, isUpdate, needsPreciseClassification, waitForFinish)
+    return processComplete(uploadJob, enrichment, gokbUsername, gokbPassword, isUpdate, needsPreciseClassification, waitForFinish, ygorFeedback)
   }
 
 
@@ -382,21 +384,23 @@ class EnrichmentService{
    * used by EnrichmentService    --> processComplete
    */
   UploadJob processComplete(@Nonnull UploadJobFrame uploadJobFrame, @Nonnull Enrichment enrichment, String gokbUsername,
-                            String gokbPassword, boolean waitForFinish) {
+                            String gokbPassword, boolean waitForFinish, YgorFeedback ygorFeedback) {
     def options = [
         'options'        : enrichment.processingOptions,
         'addOnly'        : enrichment.addOnly,
         'ygorVersion'    : Holders.config.ygor.version,
         'ygorType'       : Holders.config.ygor.type
     ]
-    enrichment.process(options, kbartReader)
+    enrichment.process(options, kbartReader, ygorFeedback)
     while (enrichment.status in [Enrichment.ProcessingState.PREPARE_1, Enrichment.ProcessingState.PREPARE_2,
                                  Enrichment.ProcessingState.WORKING, null]){
       Thread.sleep(1000)
     }
     // Main processing finished here.
     if (enrichment.status == Enrichment.ProcessingState.ERROR){
-      // TODO return reason for error
+      ygorFeedback.statusDescription += " Error occured during main processing phase."
+      ygorFeedback.reportingComponent = EnrichmentService.class
+      ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
       return null
     }
     // Upload is following - send package with integrated title data
@@ -404,11 +408,11 @@ class EnrichmentService{
     SendPackageThreadGokb sendPackageThreadGokb
     if (!StringUtils.isEmpty(enrichment.dataContainer.pkgHeader.token)){
       // send with token-based authentication
-      sendPackageThreadGokb = new SendPackageThreadGokb(enrichment, uri, true)
+      sendPackageThreadGokb = new SendPackageThreadGokb(enrichment, uri, true, ygorFeedback)
     }
     else{
       // send with basic auth
-      sendPackageThreadGokb = new SendPackageThreadGokb(enrichment, uri, gokbUsername, gokbPassword, true)
+      sendPackageThreadGokb = new SendPackageThreadGokb(enrichment, uri, gokbUsername, gokbPassword, true, ygorFeedback)
     }
     UploadJob uploadJob = uploadJobFrame.toUploadJob(sendPackageThreadGokb)
     addUploadJob(uploadJob)

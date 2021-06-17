@@ -5,6 +5,8 @@ import groovyx.net.http.Method
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang.StringUtils
 
+import java.nio.charset.StandardCharsets
+
 class GokbService {
 
   def grailsApplication
@@ -52,7 +54,7 @@ class GokbService {
 
 
   Map getPlatformMap(String qterm = null, def suggest = true, String curatoryGroup) {
-    log.info("getting platform map from gokb ..")
+    log.info("getting platform map from KB ..")
     def result = [:]
     try {
       String esQuery = qterm ? URLEncoder.encode(qterm) : ""
@@ -138,19 +140,19 @@ class GokbService {
   private String buildUri(final String stub, final String query, final String type, final String role, final Integer max, String category = null) {
     String url = stub + "?"
     if (query) {
-      url += "q=" + query + "&"
+      url += "q=" + URLEncoder.encode(query, StandardCharsets.UTF_8.toString()) + "&"
     }
     if (type) {
-      url += "componentType=" + type + "&"
+      url += "componentType=" + URLEncoder.encode(type, StandardCharsets.UTF_8.toString()) + "&"
     }
     if (category) {
-      url += "category=" + category + "&"
+      url += "category=" + URLEncoder.encode(category, StandardCharsets.UTF_8.toString()) + "&"
     }
     if (role) {
-      url += "role=" + role + "&"
+      url += "role=" + URLEncoder.encode(role, StandardCharsets.UTF_8.toString()) + "&"
     }
     if (max) {
-      url += "max=" + max + "&"
+      url += "max=" + URLEncoder.encode(String.valueOf(max), StandardCharsets.UTF_8.toString()) + "&"
     }
     url.substring(0, url.length() - 1)
   }
@@ -175,14 +177,14 @@ class GokbService {
   String appendCuratoryGroup(String uri, String curatoryGroup){
     if (!StringUtils.isEmpty(curatoryGroup)){
       uri = uri.contains("?") ? uri + "&" : uri + "?"
-      uri = uri + "curatoryGroup=" + curatoryGroup
+      uri = uri + "curatoryGroup=" + URLEncoder.encode(curatoryGroup, StandardCharsets.UTF_8.toString())
     }
     uri
   }
 
 
   Map getProviderMap(def qterm = null, List<String> embeddedFields, String curatoryGroup = null) {
-    log.info("getting provider map from gokb ..")
+    log.info("getting provider map from KB ..")
     def result = [:]
     try {
       String esQuery = qterm ? URLEncoder.encode(qterm) : ""
