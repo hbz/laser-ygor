@@ -10,6 +10,7 @@ import java.time.LocalDate
  */
 abstract class AbstractBaseDataReader{
 
+  Date fileNameDate
   String dataFileName
   static String IDENTIFIER = "basedata"
 

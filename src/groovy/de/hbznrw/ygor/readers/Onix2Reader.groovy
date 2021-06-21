@@ -12,7 +12,7 @@ import ygor.EnrichmentService
 class Onix2Reader extends AbstractOnixReader{
 
   EnrichmentService enrichmentService = new EnrichmentService()
-  static final def IDENTIFIER = 'onix2'
+  static final String IDENTIFIER = 'onix2'
 
   def messageSource = grails.util.Holders.applicationContext.getBean("messageSource")
 

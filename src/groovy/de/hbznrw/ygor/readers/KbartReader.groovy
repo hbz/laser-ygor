@@ -23,7 +23,7 @@ class KbartReader extends AbstractBaseDataReader{
 
   def messageSource = grails.util.Holders.applicationContext.getBean("messageSource")
 
-  static final def IDENTIFIER = 'kbart'
+  static final String IDENTIFIER = 'kbart'
   static final String KBART_HEADER_ZDB_ID = "zdb_id"
   static final String KBART_HEADER_ONLINE_IDENTIFIER = "online_identifier"
   static final String KBART_HEADER_PRINT_IDENTIFIER = "print_identifier"
@@ -34,7 +34,6 @@ class KbartReader extends AbstractBaseDataReader{
   private List<String> csvHeader
   Iterator<CSVRecord> csvRecords
   private CSVRecord lastItemReturned
-  Date fileNameDate
   char delimiterChar
 
   static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
