@@ -14,6 +14,7 @@ abstract class BaseDataIntegrationService{
 
   MappingsContainer mappingsContainer
 
+
   protected Record createRecord(List<FieldKeyMapping> idMappings, TreeMap<String, String> item, MultipleProcessingThread owner){
     List<AbstractIdentifier> identifiers
     identifiers = []
@@ -28,6 +29,7 @@ abstract class BaseDataIntegrationService{
     }
     new Record(identifiers, mappingsContainer)
   }
+
 
   protected void createItem(TreeMap<String, String> item, List<FieldKeyMapping> idMappings, MultipleProcessingThread owner, DataContainer dataContainer, boolean addOnly){
     log.debug("Integrating KBart record ${item.toString()}")
