@@ -281,7 +281,9 @@ class GokbExporter {
     log.debug("parsing package header finished")
 
     ObjectNode stats = new ObjectNode(NODE_FACTORY)
-    stats.put("kbartLines", enrichment.kbartReader?.lastItemReturned?.recordNumber?.toString())
+    if (enrichment.kbartReader?.lastItemReturned?.recordNumber){
+      stats.put("kbartLines", enrichment.kbartReader.lastItemReturned.recordNumber.toString())
+    }
     stats.put("recordsTotalCreated", enrichment.dataContainer.records?.size().toString())
     stats.put("recordsValid", String.valueOf(enrichment.greenRecords?.size() + enrichment.yellowRecords.size()))
     stats.put("recordsInvalid", String.valueOf(enrichment.redRecords?.size()))
