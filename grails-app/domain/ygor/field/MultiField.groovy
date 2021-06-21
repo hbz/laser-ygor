@@ -163,7 +163,7 @@ class MultiField {
   void validateContent(String namespace) {
     String value = getFirstPrioValue()
     if (keyMapping != null && keyMapping.allowedValues != null && !keyMapping.allowedValues.isEmpty()){
-      if (!(value in keyMapping.allowedValues)){
+      if (!(value.toLowerCase() in keyMapping.allowedValues)){
         // this value is not allowed by the config "allowedValues" in YgorFieldKeyMapping.json
         if (StringUtils.isEmpty(value)){
           status = Status.MISSING
