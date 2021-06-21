@@ -15,10 +15,7 @@ import ygor.identifier.AbstractIdentifier
 
 import java.time.LocalDate
 
-class KbartIntegrationService {
-
-  private MappingsContainer mappingsContainer
-
+class KbartIntegrationService extends BaseDataIntegrationService{
 
   KbartIntegrationService(MappingsContainer mappingsContainer) {
     this.mappingsContainer = mappingsContainer
@@ -29,7 +26,6 @@ class KbartIntegrationService {
                 KbartReaderConfiguration kbartReaderConfiguration) {
     KbartReader reader = owner.baseDataReader.setConfiguration(kbartReaderConfiguration)
     List<FieldKeyMapping> idMappings = [owner.zdbKeyMapping, owner.issnKeyMapping, owner.eissnKeyMapping]
-    List<AbstractIdentifier> identifiers
     LocalDate lastUpdate = null
     if (owner.enrichment.isUpdate){
       lastUpdate = LocalDate.parse(DateNormalizer.getDateString(owner.enrichment.lastProcessingDate))
@@ -40,17 +36,7 @@ class KbartIntegrationService {
     while (item != null) {
       // collect all identifiers (zdb_id, online_identifier, print_identifier) from the record
       log.debug("Integrating KBart record ${item.toString()}")
-      identifiers = []
-      for (idMapping in idMappings) {
-        for (key in idMapping.kbartKeys) {
-          if (item[key]) {
-            Class clazz = owner.identifierByKey[idMapping]
-            def identifier = clazz.newInstance(["identifier": item[key]])
-            identifiers.add(identifier)
-          }
-        }
-      }
-      Record record = new Record(identifiers, mappingsContainer)
+      Record record = createRecord(idMappings, item, owner)
 
       // fill record with all non-identifier fields
       item.each { key, value ->
