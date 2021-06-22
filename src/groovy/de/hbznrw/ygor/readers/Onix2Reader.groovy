@@ -13,6 +13,7 @@ class Onix2Reader extends AbstractOnixReader{
 
   EnrichmentService enrichmentService = new EnrichmentService()
   static final String IDENTIFIER = 'onix2'
+  Node onixData
 
   def messageSource = grails.util.Holders.applicationContext.getBean("messageSource")
 
@@ -29,14 +30,26 @@ class Onix2Reader extends AbstractOnixReader{
   }
 
 
-  protected void init(File onixFile, String originalFileName){
+  protected void init(File onixFile, String originalFileName) throws IllegalFormatException{
     this.dataFileName = originalFileName
+    onixData = new XmlParser().parse(onixFile)
+    if (!onixData.header){
+      throw new IllegalFormatException("ONIX v2 file is missing header section")
+    }
+    if (!onixData.product){
+      throw new IllegalFormatException("ONIX v2 file is missing product section")
+    }
   }
 
 
   @Override
   Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) {
-    return null
+    if (!onixData){
+      return null
+    }
+    Node product = onixData.product
+
+
   }
 
 

@@ -24,12 +24,13 @@ abstract class AbstractBaseDataReader{
 
   static Class determineReader(CommonsMultipartFile baseDataFile){
     if (KbartReader.isValidFile(baseDataFile)){
-      return KbartReader
+      return KbartReader.class
     }
     if (Onix2Reader.isValidFile(baseDataFile)){
-      return Onix2Reader
+      return Onix2Reader.class
     }
   }
+
 
   static boolean hasFileValidExtension(CommonsMultipartFile file, List<String> validExtensions) throws IllegalFormatException{
     String fileName = file.originalFilename
@@ -39,6 +40,16 @@ abstract class AbstractBaseDataReader{
     }
     String extension = fileName.substring(lastDotIndex+1, fileName.size())
     return extension in validExtensions
+  }
+
+
+  BufferedReader removeBOM(BufferedReader bufferedReader){
+    PushbackReader pushbackReader = new PushbackReader(bufferedReader)
+    int c = pushbackReader.read()
+    if(c != 0xFEFF) {
+      pushbackReader.unread(c)
+    }
+    return new BufferedReader(pushbackReader)
   }
 
 }

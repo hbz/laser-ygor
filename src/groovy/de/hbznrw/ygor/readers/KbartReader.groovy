@@ -107,16 +107,6 @@ class KbartReader extends AbstractBaseDataReader{
   }
 
 
-  private BufferedReader removeBOM(BufferedReader bufferedReader){
-    PushbackReader pushbackReader = new PushbackReader(bufferedReader)
-    int c = pushbackReader.read()
-    if(c != 0xFEFF) {
-      pushbackReader.unread(c)
-    }
-    return new BufferedReader(pushbackReader)
-  }
-
-
   private char calculateDelimiter(String line) {
     log.debug("Getting delimiter for line: ${line}")
     int maxCount = 0
