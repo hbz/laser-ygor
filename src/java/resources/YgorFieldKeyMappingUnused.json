@@ -1,5 +1,21 @@
 [
   {
+    "ygor" : "cityOfPublication",
+    "in" : {
+      "onix2" : ["CityOfPublication", "b209"]
+    },
+    "out" : {
+      "kb" : []
+    },
+    "type" : "String",
+    "flags" : {
+      "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "error"}],
+      "missing" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "undefined" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}]
+    }
+  },
+  {
     "ygor" : "continuingSeries",
     "in" : {
       "kbart" : "",
@@ -238,6 +254,38 @@
     }
   },
   {
+    "ygor" : "productForm",
+    "in" : {
+      "onix2" : ["ProductForm", "b012"]
+    },
+    "out" : {
+      "kb" : []
+    },
+    "type" : "String",
+    "flags" : {
+      "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "error"}],
+      "missing" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "undefined" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}]
+    }
+  },
+  {
+    "ygor" : "productFormDetail",
+    "in" : {
+      "onix2" : ["EpubType", "b211"]
+    },
+    "out" : {
+      "kb" : []
+    },
+    "type" : "String",
+    "flags" : {
+      "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "error"}],
+      "missing" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "undefined" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}]
+    }
+  },
+  {
     "ygor" : "publisherHistoryStatus",
     "out" : {
       "kb" : ["$TITLE.publisher_history.$ARRAY.$COUNT.status"]
@@ -299,6 +347,22 @@
       "invalid" : "ok",
       "missing" : "ok",
       "undefined" : "ok"
+    }
+  },
+  {
+    "ygor" : "titleType",
+    "in" : {
+      "onix2" : ["title:TitleType", "title:b202"]
+    },
+    "out" : {
+      "kb" : []
+    },
+    "type" : "String",
+    "flags" : {
+      "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "error"}],
+      "missing" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
+      "undefined" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}]
     }
   }
 ]
