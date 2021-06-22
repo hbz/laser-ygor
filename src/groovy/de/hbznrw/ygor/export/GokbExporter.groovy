@@ -107,6 +107,7 @@ class GokbExporter {
           tipp = JsonToolkit.getTippJsonFromRecord(MappingsContainer.KB, record, FORMATTER, multiValueSeparator)
         }
         tipp = postProcessIssnIsbn(tipp, record, FileType.PACKAGE)
+        tipp = postProcessFirstAuthor(tipp, record, FileType.PACKAGE)
         if (type.equals(FileType.PACKAGE_WITH_TITLEDATA)){
           // additionally rename title identifiers
           postProcessIssnIsbn(tipp, record, FileType.TITLES)
@@ -186,6 +187,7 @@ class GokbExporter {
       ObjectNode title = JsonToolkit.getTitleJsonFromRecord(MappingsContainer.KB, record, FORMATTER, multiValueSeparator)
       title = postProcessPublicationTitle(title, record)
       title = postProcessIssnIsbn(title, record, FileType.TITLES)
+      title = postProcessFirstAuthor(title, record, FileType.TITLES)
       title = removeEmptyFields(title)
       title = removeEmptyIdentifiers(title, FileType.TITLES)
       title = removeEmptyPrices(title)
@@ -361,6 +363,28 @@ class GokbExporter {
       if (printIdentifier != null){
         printIdentifier.remove("type")
         printIdentifier.set("type", new TextNode("pisbn"))
+      }
+    }
+    return node
+  }
+
+
+  private static ObjectNode postProcessFirstAuthor(ObjectNode node, Record record, FileType type){
+    ObjectNode firstAuthor
+    if (type.equals(FileType.TITLES)){
+      firstAuthor = node.get("firstAuthor")
+    }
+    else if (type.equals(FileType.PACKAGE)){
+      firstAuthor = node.get("title").get("firstAuthor")
+    }
+    else{
+      return node
+    }
+    String firstName = record.multiFields.get("firstAuthorFirstName")?.getFirstPrioValue()
+    if (!StringUtils.isEmpty(firstName)){
+      String name = firstAuthor.asText()
+      if (!StringUtils.isEmpty(name)){
+        node.set("firstAuthor", new TextNode("$name, $firstName"))
       }
     }
     return node
