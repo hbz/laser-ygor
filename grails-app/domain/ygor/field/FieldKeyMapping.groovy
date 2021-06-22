@@ -177,7 +177,8 @@ class FieldKeyMapping {
   private void putToKeys(def value, Collection keys) {
     if (value instanceof Collection<?>) {
       keys.addAll(value)
-    } else if (!StringUtils.isEmpty(value.toString())) {
+    }
+    else if (!StringUtils.isEmpty(value.toString())) {
       keys.add(value)
     }
   }
