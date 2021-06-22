@@ -33,7 +33,7 @@ class KbartReader extends AbstractBaseDataReader{
   private CSVFormat csvFormat
   private List<String> csvHeader
   Iterator<CSVRecord> csvRecords
-  private CSVRecord lastItemReturned
+  CSVRecord lastItemReturned
   char delimiterChar
 
   static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
