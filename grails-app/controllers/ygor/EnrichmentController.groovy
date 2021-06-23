@@ -195,7 +195,7 @@ class EnrichmentController implements ControllersHelper{
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading URL. ",
         this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 3600)
-    def urlString = request.parameterMap["uploadUrlText"][0]
+    def urlString = request.parameterMap["uploadUrlText"][0].trim()
     // validate
     if (!(new org.apache.commons.validator.routines.UrlValidator()).isValid(urlString)){
       flash.error = message(code: 'error.kbart.noValidUrl').toString()
