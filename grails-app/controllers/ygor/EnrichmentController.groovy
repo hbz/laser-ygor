@@ -525,6 +525,10 @@ class EnrichmentController implements ControllersHelper{
     def result = [:]
     UploadJobFrame uploadJob = enrichmentService.getUploadJob(jobId)
     if (uploadJob == null){
+      Thread.sleep(1000)
+      uploadJob = enrichmentService.getUploadJob(jobId)
+    }
+    if (uploadJob == null){
       log.info("Received status request for uploadJob $jobId but there is no according job.")
       result.status = UploadThreadGokb.Status.ERROR.toString()
       result.message = "No job found for this id."
