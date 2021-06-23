@@ -495,7 +495,9 @@ class EnrichmentService{
       return null
     }
     UploadJobFrame uploadJob = UPLOAD_JOBS.get(uuid)
-    log.debug("Getting upload job for uuid ".concat(uuid).concat(" : ").concat(uploadJob?.getClass()?.getName()))
+    if (uploadJob){
+      log.debug("Getting upload job for uuid ".concat(uuid).concat(" : ").concat(uploadJob?.getClass()?.getName()))
+    }
     return uploadJob
   }
 
