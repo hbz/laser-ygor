@@ -4,6 +4,7 @@ import de.hbznrw.ygor.processing.UploadThreadGokb
 import de.hbznrw.ygor.processing.YgorFeedback
 
 import javax.annotation.Nonnull
+import java.time.LocalTime
 
 @SuppressWarnings("JpaObjectClassSignatureInspection")
 class UploadJobFrame {
@@ -14,6 +15,7 @@ class UploadJobFrame {
   String uuid
   UploadThreadGokb.Status status
   YgorFeedback ygorFeedback
+  LocalTime timeCreated
 
 
   UploadJobFrame(Enrichment.FileType fileType, @Nonnull YgorFeedback ygorFeedback){
@@ -28,6 +30,7 @@ class UploadJobFrame {
     ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.PREPARATION
     ygorFeedback.statusDescription += " Created UploadJobFrame."
     status = UploadThreadGokb.Status.PREPARATION
+    timeCreated = LocalTime.now()
     log.info("Created UploadJobFrame $uuid .")
   }
 

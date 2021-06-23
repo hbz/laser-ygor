@@ -14,6 +14,8 @@ import org.apache.commons.lang.StringUtils
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 
 import javax.servlet.http.HttpServletRequest
+import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 
 @Log4j
@@ -552,6 +554,10 @@ class EnrichmentController implements ControllersHelper{
     else{
       log.debug("UploadJob $jobId is still in frame status.")
       // uploadJob is instance of UploadJobFrame
+      if (uploadJob.timeCreated < LocalTime.now().minus(30, ChronoUnit.MINUTES)){
+        // remove job that is older than 30 minutes if nothing has happened yet
+        enrichmentService.UPLOAD_JOBS.remove(jobId)
+      }
       result.status = UploadThreadGokb.Status.PREPARATION.toString()
       render result as JSON
     }
