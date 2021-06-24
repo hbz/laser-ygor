@@ -326,12 +326,14 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processGokbPackage(){
+    Map<String, String> result = [:]
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing Knowledge Base package. ", this.getClass(), null,
         null, null, null)
+    result.ygorFeedback = ygorFeedback
     SessionService.setSessionDuration(request, 72000)
     String sessionFolder = grails.util.Holders.grailsApplication.config.ygor.uploadLocation.toString()
         .concat(File.separator).concat(UUID.randomUUID().toString())
-    Map<String, String> result = [:]
+
     List<String> missingParams = []
     CommonsMultipartFile mpFile = params.localFile ? request.getFile('uploadFile') : null
     String addOnly = params.addOnly ?: 'false'
@@ -345,8 +347,9 @@ class EnrichmentController implements ControllersHelper{
       missingParams.add("updateToken")
     }
     if (!missingParams.isEmpty()){
-      result.status = "error"
-      result.missingParams = missingParams
+      result.ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
+      result.ygorFeedback.reportingComponent = EnrichmentController.class
+      result.ygorFeedback.statusDescription += "Request missing parameters: ${missingParams.toString()}. "
       return result as JSON
     }
     boolean ignoreLastChanged = params.boolean('ignoreLastChanged') ?: false
@@ -360,14 +363,14 @@ class EnrichmentController implements ControllersHelper{
       FileUtils.writeByteArrayToFile(transferredFile, mpFile.getBytes())
     }
     if (MapUtils.isEmpty(pkg)){
-      result.status = UploadThreadGokb.Status.ERROR.toString()
+      result.ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
+      result.ygorFeedback.statusDescription += "No package found for id $pkgId. "
       response.status = 404
-      result.message = "No package found for id $pkgId"
     }
     else if (MapUtils.isEmpty(src)){
-      result.status = UploadThreadGokb.Status.ERROR.toString()
+      result.ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
+      result.ygorFeedback.statusDescription += "No source found for package with id $pkgId. "
       response.status = 404
-      result.message = "No source found for package with id $pkgId"
     }
     else{
       UploadJobFrame uploadJobFrame = new UploadJobFrame(Enrichment.FileType.PACKAGE_WITH_TITLEDATA, ygorFeedback)
@@ -375,18 +378,16 @@ class EnrichmentController implements ControllersHelper{
           uploadJobFrame, transferredFile, addOnly, ignoreLastChanged)
       try {
         completeProcessingThread.start()
-        result.status = UploadThreadGokb.Status.STARTED.toString()
+        result.ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.RUNNING
+        result.ygorFeedback.statusDescription += "Started upload job for package $pkgId. "
         response.status = 200
-        result.message = "Started upload job for package $pkgId"
         result.jobId = uploadJobFrame.uuid
-        result.ygorFeedback = ygorFeedback
       }
       catch(Exception e){
         e.printStackTrace()
-        result.status = UploadThreadGokb.Status.ERROR.toString()
+        result.ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
+        result.ygorFeedback.statusDescription += "Unable to process KBART file at the specified source url. Exception was: ${e.message}. "
         response.status = 500
-        result.message = "Unable to process KBART file at the specified source url. Exception was: ".concat(e.message)
-        result.ygorFeedback = ygorFeedback
       }
     }
     render result as JSON
