@@ -47,20 +47,26 @@ class Onix2Reader extends AbstractOnixReader{
     if (!onixData){
       return null
     }
-    Node product = onixData.product
+    Map<String, String> result = new HashMap<>()
+    Node product = onixData.product[0]
+    for (Node field in product.value()){
+      Map.Entry entry = readItemEntry(field.name().localPart, field.value()[0])
+      if (entry != null){
+        result.put(entry.key, entry.value)
+      }
+    }
+    return result
+  }
 
-    // TODO: Ensure to ignore non-specified fields
-    // TODO: Assert field contributor:B034 to be "1" to ensure to get firstAuthor
-    // TODO: Assert LanguageRole / b253 to be "1" when setting language
-    // TODO: Assert publisher:b291 to be "01" when setting publisher (see https://ns.editeur.org/onix/de/45)
 
-    // TODO: Discuss setting "mainsubject" : this can have multiple formats and variations
-    //       (see : https://ns.editeur.org/onix36/en/26)
-    // TODO: Discuss use of "productwebsite" : this can have variations
-    //       (see : https://ns.editeur.org/onix/de/73)
-    // TODO: Discuss, which Ygor date field PublicationDate / b003 should be mapped to
-    //       (see : https://vlb.de/hilfe/vlb-onix-empfehlungen/onix-im-vlb-uebersicht)
-
+  private Map.Entry<String, String> readItemEntry(String fieldName, Object fieldValue){
+    if (fieldValue instanceof String){
+      return new AbstractMap.SimpleEntry<String, Integer>(fieldName, fieldValue)
+    }
+    if (fieldValue instanceof Node){
+      return readItemEntry("$fieldName:${fieldValue.name().localPart}", fieldValue.value()[0])
+    }
+    return null
   }
 
 
