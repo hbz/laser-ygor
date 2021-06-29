@@ -66,6 +66,6 @@ class KbartFromUrlReader extends KbartReader{
 
 
   static String urlStringToFileString(String url){
-    url.replace("://", "_").replace(".", "_").replace("/", "_")
+    url.replaceAll("[/:.?=&]", '_')
   }
 }

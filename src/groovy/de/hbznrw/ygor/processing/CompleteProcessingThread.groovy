@@ -71,7 +71,6 @@ class CompleteProcessingThread extends Thread {
         updateUrls = AutoUpdateService.getUpdateUrls(src.url, src.lastRun, pkg.dateCreated)
       }
       log.info("Got ${updateUrls}")
-      updateUrls = UrlToolkit.removeNonExistentURLs(updateUrls)
       Iterator urlsIterator = updateUrls.listIterator(updateUrls.size())
       if (updateUrls.size() > 0) {
         while(urlsIterator.hasPrevious()){

@@ -102,7 +102,7 @@ class Enrichment{
 
   Enrichment(File sessionFolder, String originalFilename, YgorFeedback ygorFeedback){
     this.sessionFolder = sessionFolder
-    originName = originalFilename.replaceAll(/\s+/, '_')
+    originName = originalFilename.replaceAll("[\\s+?=&]", '_')
     originHash = FileToolkit.getMD5Hash(originName + Math.random())
     originPathName = this.sessionFolder.getPath() + File.separator + originHash
     resultHash = FileToolkit.getMD5Hash(originName + Math.random())
