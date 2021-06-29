@@ -31,7 +31,8 @@ abstract class BaseDataIntegrationService{
   }
 
 
-  protected void createItem(TreeMap<String, String> item, List<FieldKeyMapping> idMappings, MultipleProcessingThread owner, DataContainer dataContainer, boolean addOnly){
+  protected Record createRecordFromItem(TreeMap<String, String> item, List<FieldKeyMapping> idMappings,
+                                        MultipleProcessingThread owner){
     log.debug("Integrating KBart record ${item.toString()}")
     Record record = createRecord(idMappings, item, owner)
 
@@ -50,15 +51,14 @@ abstract class BaseDataIntegrationService{
       record.addMultiField(multiField)
     }
     record.publicationType = record.multiFields.get("publicationType").getFirstPrioValue().toLowerCase()
+    record
+  }
+
+
+  protected void storeRecord(Record record, DataContainer dataContainer){
     dataContainer.addRecord(record)
     log.debug("... added record ${record.displayTitle} to data container.")
     record.save(dataContainer.enrichmentFolder, dataContainer.resultHash)
-    owner.increaseProgress()
-    if (!addOnly){
-      if (null != DateToolkit.getAsLocalDate(item.get("last_changed"))){
-        owner.enrichment.addOnly = true
-      }
-    }
   }
 
 }

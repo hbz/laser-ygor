@@ -7,11 +7,8 @@ import de.hbznrw.ygor.readers.KbartReader
 import de.hbznrw.ygor.readers.KbartReaderConfiguration
 import de.hbznrw.ygor.tools.DateToolkit
 import ygor.Record
-import ygor.field.Field
 import ygor.field.FieldKeyMapping
 import ygor.field.MappingsContainer
-import ygor.field.MultiField
-import ygor.identifier.AbstractIdentifier
 
 import java.time.LocalDate
 
@@ -35,7 +32,14 @@ class KbartIntegrationService extends BaseDataIntegrationService{
     TreeMap<String, String> item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     while (item != null) {
       // collect all identifiers (zdb_id, online_identifier, print_identifier) from the record
-      createItem(item, idMappings, owner, dataContainer, addOnly)
+      Record record = createRecordFromItem(item, idMappings, owner, dataContainer, addOnly)
+      storeRecord(record, dataContainer)
+      owner.increaseProgress()
+      if (!addOnly){
+        if (null != DateToolkit.getAsLocalDate(item.get("last_changed"))){
+          owner.enrichment.addOnly = true
+        }
+      }
       item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     }
     return
