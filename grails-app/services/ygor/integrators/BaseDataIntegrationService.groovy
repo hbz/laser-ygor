@@ -32,22 +32,33 @@ abstract class BaseDataIntegrationService{
 
 
   protected Record createRecordFromItem(TreeMap<String, String> item, List<FieldKeyMapping> idMappings,
-                                        MultipleProcessingThread owner){
-    log.debug("Integrating KBart record ${item.toString()}")
+                                        MultipleProcessingThread owner, String source){
+    log.debug("Integrating $source record ${item.toString()}")
     Record record = createRecord(idMappings, item, owner)
 
     // fill record with all non-identifier fields
     item.each{ key, value ->
-      def fieldKeyMapping = mappingsContainer.getMapping(key, MappingsContainer.KBART)
+      def fieldKeyMapping = mappingsContainer.getMapping(key, source)
       if (fieldKeyMapping == null){
-        fieldKeyMapping = new FieldKeyMapping(false,
-            [(MappingsContainer.YGOR) : key,
-             (MappingsContainer.KBART): key,
-             (MappingsContainer.ZDB)  : "",
-             (MappingsContainer.EZB)  : ""])
+        if (source == MappingsContainer.KBART){
+          fieldKeyMapping = new FieldKeyMapping(false,
+              [(MappingsContainer.YGOR) : key,
+               (MappingsContainer.KBART): key,
+               (MappingsContainer.ONIX2): "",
+               (MappingsContainer.ZDB)  : "",
+               (MappingsContainer.EZB)  : ""])
+        }
+        else if (source == MappingsContainer.ONIX2){
+          fieldKeyMapping = new FieldKeyMapping(false,
+              [(MappingsContainer.YGOR) : key,
+               (MappingsContainer.ONIX2): key,
+               (MappingsContainer.KBART): "",
+               (MappingsContainer.ZDB)  : "",
+               (MappingsContainer.EZB)  : ""])
+        }
       }
       MultiField multiField = new MultiField(fieldKeyMapping)
-      multiField.addField(new Field(MappingsContainer.KBART, key, value))
+      multiField.addField(new Field(source, key, value))
       record.addMultiField(multiField)
     }
     record.publicationType = record.multiFields.get("publicationType").getFirstPrioValue().toLowerCase()

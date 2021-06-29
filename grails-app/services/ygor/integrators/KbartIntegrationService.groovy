@@ -32,7 +32,7 @@ class KbartIntegrationService extends BaseDataIntegrationService{
     TreeMap<String, String> item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     while (item != null) {
       // collect all identifiers (zdb_id, online_identifier, print_identifier) from the record
-      Record record = createRecordFromItem(item, idMappings, owner, dataContainer, addOnly)
+      Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.KBART)
       storeRecord(record, dataContainer)
       owner.increaseProgress()
       if (!addOnly){

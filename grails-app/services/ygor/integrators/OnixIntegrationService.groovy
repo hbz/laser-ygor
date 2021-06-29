@@ -27,7 +27,7 @@ class OnixIntegrationService extends BaseDataIntegrationService{
     boolean addOnly = false
     TreeMap<String, String> item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     while (item != null) {
-      Record record = createRecordFromItem(item, idMappings, owner)
+      Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)
       storeRecord(record, dataContainer)
 
       // TODO: Ensure to ignore non-specified fields

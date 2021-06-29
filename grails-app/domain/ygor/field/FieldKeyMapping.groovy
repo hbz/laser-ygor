@@ -14,6 +14,7 @@ class FieldKeyMapping {
   String ygorKey
   String displayName
   List<String> kbartKeys = new ArrayList()
+  List<String> onix2Keys = new ArrayList()
   List<String> zdbKeys = new ArrayList()
   List<String> ezbKeys = new ArrayList()
   String type
@@ -37,6 +38,7 @@ class FieldKeyMapping {
   static String[] VALID_FLAG_TYPES = ["valid", "invalid", "missing", "undefined"]
 
   static hasMany = [kbartKeys    : String,
+                    onix2Keys    : String,
                     zdbKeys      : String,
                     ezbKeys      : String,
                     kb           : String,
@@ -63,6 +65,9 @@ class FieldKeyMapping {
           break
         case MappingsContainer.KBART:
           putToKeys(mapping.value, kbartKeys)
+          break
+        case MappingsContainer.ONIX2:
+          putToKeys(mapping.value, onix2Keys)
           break
         case MappingsContainer.ZDB:
           putToKeys(mapping.value, zdbKeys)
@@ -192,13 +197,20 @@ class FieldKeyMapping {
   Collection get(String source) {
     if (source == MappingsContainer.YGOR) {
       [ygorKey]
-    } else if (source == MappingsContainer.KBART) {
+    }
+    else if (source == MappingsContainer.KBART) {
       kbartKeys
-    } else if (source == MappingsContainer.ZDB) {
+    }
+    else if (source == MappingsContainer.ONIX2) {
+      onix2Keys
+    }
+    else if (source == MappingsContainer.ZDB) {
       zdbKeys
-    } else if (source == MappingsContainer.EZB) {
+    }
+    else if (source == MappingsContainer.EZB) {
       ezbKeys
-    } else if (source == MappingsContainer.TYPE) {
+    }
+    else if (source == MappingsContainer.TYPE) {
       [type]
     }
   }
@@ -209,7 +221,7 @@ class FieldKeyMapping {
       throw IllegalArgumentException("Illegal static list of sources given for MultiField configuration: "
           .concat(sourcePrio))
     }
-    for (necessaryKey in [MappingsContainer.ZDB, MappingsContainer.KBART, MappingsContainer.EZB]) {
+    for (necessaryKey in [MappingsContainer.ZDB, MappingsContainer.KBART, MappingsContainer.ONIX2, MappingsContainer.EZB]){
       boolean found = false
       for (givenSource in sourcePrio) {
         if (givenSource == necessaryKey) {
@@ -236,6 +248,13 @@ class FieldKeyMapping {
     jsonGenerator.writeFieldName(MappingsContainer.KBART)
     jsonGenerator.writeStartArray()
     for (String kk in kbartKeys) {
+      jsonGenerator.writeString(kk)
+    }
+    jsonGenerator.writeEndArray()
+
+    jsonGenerator.writeFieldName(MappingsContainer.ONIX2)
+    jsonGenerator.writeStartArray()
+    for (String kk in onix2Keys) {
       jsonGenerator.writeString(kk)
     }
     jsonGenerator.writeEndArray()

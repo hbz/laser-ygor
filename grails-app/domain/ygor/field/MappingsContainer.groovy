@@ -14,6 +14,7 @@ class MappingsContainer {
 
   final public static String YGOR = "ygor"
   final public static String KBART = "kbart"
+  final public static String ONIX2 = "onix2"
   final public static String ZDB = "zdb"
   final public static String EZB = "ezb"
   final public static String KB = "kb"
@@ -28,9 +29,10 @@ class MappingsContainer {
 
   Map<String, FieldKeyMapping> ygorMappings
   Map<String, FieldKeyMapping> kbartMappings
+  Map<String, FieldKeyMapping> onix2Mappings
   Map<String, FieldKeyMapping> zdbMappings
   Map<String, FieldKeyMapping> ezbMappings
-  static hasMany = [ygorMappings: FieldKeyMapping, kbartMappings: FieldKeyMapping,
+  static hasMany = [ygorMappings: FieldKeyMapping, kbartMappings: FieldKeyMapping, onix2Mappings:FieldKeyMapping,
                     zdbMappings : FieldKeyMapping, ezbMappings: FieldKeyMapping]
 
   MappingsContainer() {
@@ -51,6 +53,7 @@ class MappingsContainer {
   private def initialize(String mappingsFile) throws MissingFieldException {
     ygorMappings = [:]
     kbartMappings = [:]
+    onix2Mappings = [:]
     zdbMappings = [:]
     ezbMappings = [:]
     //readMappingsFile(new File(mappingsFile))
@@ -85,6 +88,9 @@ class MappingsContainer {
     if (mapping.kbartKeys instanceof Collection<?> || !StringUtils.isEmpty(mapping.kbartKeys)) {
       putPartToMapping(kbartMappings, mapping, mapping.kbartKeys)
     }
+    if (mapping.onix2Mappings instanceof Collection<?> || !StringUtils.isEmpty(mapping.kbartKeys)) {
+      putPartToMapping(onix2Mappings, mapping, mapping.kbartKeys)
+    }
     if (mapping.zdbKeys instanceof Collection<?> || !StringUtils.isEmpty(mapping.zdbKeys)) {
       putPartToMapping(zdbMappings, mapping, mapping.zdbKeys)
     }
@@ -117,6 +123,9 @@ class MappingsContainer {
       return ygorMappings.get(key)
     }
     if (type == KBART) {
+      return kbartMappings.get(key)
+    }
+    if (type == ONIX2) {
       return kbartMappings.get(key)
     }
     if (type == ZDB) {
