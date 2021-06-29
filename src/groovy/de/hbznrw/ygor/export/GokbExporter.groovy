@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.node.TextNode
 import de.hbznrw.ygor.format.GokbFormatter
 import de.hbznrw.ygor.normalizers.DoiNormalizer
 import de.hbznrw.ygor.processing.YgorFeedback
+import de.hbznrw.ygor.readers.KbartReader
+import de.hbznrw.ygor.readers.Onix2Reader
 import de.hbznrw.ygor.tools.JsonToolkit
 import de.hbznrw.ygor.tools.StopwordToolkit
 import groovy.util.logging.Log4j
@@ -283,8 +285,15 @@ class GokbExporter {
     log.debug("parsing package header finished")
 
     ObjectNode stats = new ObjectNode(NODE_FACTORY)
-    if (enrichment.kbartReader?.lastItemReturned?.recordNumber){
-      stats.put("kbartLines", enrichment.kbartReader.lastItemReturned.recordNumber.toString())
+    if (enrichment.baseDataReader instanceof KbartReader){
+      if (enrichment.baseDataReader.lastItemReturned?.recordNumber){
+        stats.put("kbartLines", enrichment.baseDataReader.lastItemReturned.recordNumber.toString())
+      }
+    }
+    else if (enrichment.baseDataReader instanceof Onix2Reader){
+      if (enrichment.baseDataReader.itemCounter){
+        stats.put("kbartLines", enrichment.baseDataReader.itemCounter)
+      }
     }
     stats.put("recordsTotalCreated", enrichment.dataContainer.records?.size().toString())
     stats.put("recordsValid", String.valueOf(enrichment.greenRecords?.size() + enrichment.yellowRecords.size()))

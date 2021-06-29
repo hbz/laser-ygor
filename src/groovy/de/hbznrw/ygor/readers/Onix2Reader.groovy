@@ -11,6 +11,7 @@ import ygor.EnrichmentService
 @Log4j
 class Onix2Reader extends AbstractOnixReader{
 
+  int itemCounter
   EnrichmentService enrichmentService = new EnrichmentService()
   static final String IDENTIFIER = 'onix2'
   Node onixData
@@ -33,6 +34,7 @@ class Onix2Reader extends AbstractOnixReader{
   protected void init(File onixFile, String originalFileName) throws IllegalFormatException{
     this.dataFileName = originalFileName
     onixData = new XmlParser().parse(onixFile)
+    itemCounter = 0
     if (!onixData.header){
       throw new IllegalFormatException("ONIX v2 file is missing header section")
     }
@@ -48,7 +50,10 @@ class Onix2Reader extends AbstractOnixReader{
       return null
     }
     Map<String, String> result = new HashMap<>()
-    Node product = onixData.product[0]
+    Node product = onixData.product[itemCounter++]
+    if (product == null){
+      return null
+    }
     for (Node field in product.value()){
       Map.Entry entry = readItemEntry(field.name().localPart, field.value()[0])
       if (entry != null){
