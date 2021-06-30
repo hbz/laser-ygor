@@ -138,7 +138,10 @@ class MultiField {
       return "default value"
     }
     if (keyMapping == null) {
-      return "kbart"
+      for (def field in fields){
+        return field.source
+      }
+      return "input file"
     }
     if (keyMapping.valIsFix) {
       return "default value"

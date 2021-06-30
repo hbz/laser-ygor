@@ -24,7 +24,6 @@ class OnixIntegrationService extends BaseDataIntegrationService{
     if (owner.enrichment.isUpdate){
       lastUpdate = LocalDate.parse(DateNormalizer.getDateString(owner.enrichment.lastProcessingDate))
     }
-    boolean addOnly = false
     TreeMap<String, String> item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     while (item != null) {
       Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)

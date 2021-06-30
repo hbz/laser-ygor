@@ -15,6 +15,7 @@ class Onix2Reader extends AbstractOnixReader{
   EnrichmentService enrichmentService = new EnrichmentService()
   static final String IDENTIFIER = 'onix2'
   Node onixData
+  char delimiterChar = ','
 
   def messageSource = grails.util.Holders.applicationContext.getBean("messageSource")
 

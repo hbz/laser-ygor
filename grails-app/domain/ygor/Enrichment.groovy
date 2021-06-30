@@ -17,6 +17,7 @@ import de.hbznrw.ygor.tools.SessionToolkit
 import grails.util.Holders
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import groovy.util.logging.Log4j
 import org.apache.commons.lang.StringUtils
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 import ygor.field.FieldKeyMapping
@@ -30,6 +31,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 @SuppressWarnings('JpaObjectClassSignatureInspection')
+@Log4j
 class Enrichment{
 
   static mapWith = "none" // disable persisting into database

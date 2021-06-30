@@ -21,7 +21,7 @@ class MappingsContainer {
   final public static String TYPE = "type"
   final public static String MULTI_VALUE = "multivalue"
   final public static String FLAGS = "flags"
-  final public static DEFAULT_SOURCE_PRIO = [KBART, ZDB, EZB]
+  final public static DEFAULT_SOURCE_PRIO = [KBART, ONIX2, ZDB, EZB]
 
   final private static JsonSlurper SLURPY = new JsonSlurper()
   private static String DEFAULT_MAPPINGS_FILE = "resources/YgorFieldKeyMapping.json"
@@ -88,8 +88,8 @@ class MappingsContainer {
     if (mapping.kbartKeys instanceof Collection<?> || !StringUtils.isEmpty(mapping.kbartKeys)) {
       putPartToMapping(kbartMappings, mapping, mapping.kbartKeys)
     }
-    if (mapping.onix2Mappings instanceof Collection<?> || !StringUtils.isEmpty(mapping.kbartKeys)) {
-      putPartToMapping(onix2Mappings, mapping, mapping.kbartKeys)
+    if (mapping.onix2Keys instanceof Collection<?> || !StringUtils.isEmpty(mapping.onix2Keys)) {
+      putPartToMapping(onix2Mappings, mapping, mapping.onix2Keys)
     }
     if (mapping.zdbKeys instanceof Collection<?> || !StringUtils.isEmpty(mapping.zdbKeys)) {
       putPartToMapping(zdbMappings, mapping, mapping.zdbKeys)
@@ -126,7 +126,7 @@ class MappingsContainer {
       return kbartMappings.get(key)
     }
     if (type == ONIX2) {
-      return kbartMappings.get(key)
+      return onix2Mappings.get(key)
     }
     if (type == ZDB) {
       return zdbMappings.get(key)
