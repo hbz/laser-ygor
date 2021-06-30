@@ -256,7 +256,7 @@
     "out" : {
       "kb" : ["$TITLE.firstAuthor", "$TIPP.title.firstAuthor"]
     },
-    "order" : ["kbart"],
+    "order" : ["kbart", "onix2"],
     "type" : "String",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
@@ -449,7 +449,7 @@
     "out" : {
       "kb" : ["$TITLE.language", "$TIPP.title.language"]
     },
-    "order" : ["kbart", "zdb"],
+    "order" : ["kbart", "onix2", "zdb"],
     "type" : "Abbreviation",
     "lengthmax" : 3,
     "lengthmin" : 3,
@@ -573,7 +573,7 @@
         "$TIPP.title.editionStatement"
       ]
     },
-    "order" : ["kbart"],
+    "order" : ["kbart", "onix2"],
     "type" : "String",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
@@ -810,7 +810,7 @@
         "$TIPP.title.identifiers.$ARRAY.(type:printIdentifier,value)"
       ]
     },
-    "order" : ["kbart"],
+    "order" : ["kbart", "onix2"],
     "type" : "ID",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
@@ -851,7 +851,7 @@
     "out" : {
       "kb" : ["$TIPP.name"]
     },
-    "order" : ["kbart"],
+    "order" : ["kbart", "onix2"],
     "type" : "Title",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
@@ -1038,7 +1038,7 @@
         "$TIPP.publisherName"
       ]
     },
-    "order" : ["kbart", "zdb"],
+    "order" : ["kbart", "onix2", "zdb"],
     "type" : "String",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
@@ -1082,7 +1082,7 @@
     "out" : {
       "kb" : ["$TIPP.series"]
     },
-    "order" : ["kbart"],
+    "order" : ["kbart", "onix2"],
     "type" : "String",
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],

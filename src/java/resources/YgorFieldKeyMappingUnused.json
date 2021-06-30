@@ -8,6 +8,7 @@
       "kb" : []
     },
     "type" : "String",
+    "order" : ["onix2"],
     "flags" : {
       "valid" : [{"serial" : "ok", "monograph" : "ok", "other" : "ok"}],
       "invalid" : [{"serial" : "error", "monograph" : "error", "other" : "error"}],
@@ -274,6 +275,7 @@
     "in" : {
       "onix2" : ["EpubType", "b211"]
     },
+    "order" : ["onix2"],
     "out" : {
       "kb" : []
     },
@@ -354,6 +356,7 @@
     "in" : {
       "onix2" : ["title:TitleType", "title:b202"]
     },
+    "order" : ["onix2"],
     "out" : {
       "kb" : []
     },
