@@ -392,9 +392,15 @@ class Enrichment{
 
 
   static Enrichment fromJsonFile(File file, boolean loadRecordData){
-    JsonNode rootNode = JsonToolkit.jsonNodeFromFile(file)
-    Enrichment enrichment = Enrichment.fromRawJson(rootNode, loadRecordData)
-    enrichment.enrollPlatformToRecords()
+    Enrichment enrichment = null
+    try{
+      JsonNode rootNode = JsonToolkit.jsonNodeFromFile(file)
+      enrichment = Enrichment.fromRawJson(rootNode, loadRecordData)
+      enrichment.enrollPlatformToRecords()
+    }
+    catch (Exception e){
+      log.error(e)
+    }
     enrichment
   }
 
@@ -410,10 +416,12 @@ class Enrichment{
       zis.close()
       List<File> recordFiles = enrichmentFolder.listFiles(new RecordFileFilter(configMap.get("resultHash")))
       Enrichment enrichment = fromJsonFile(configFile, true)
-      for (File recordFile in recordFiles){
-        enrichment.dataContainer.records.add(JsonToolkit.fromJson(JsonToolkit.jsonNodeFromFile(recordFile), "uid"))
+      if (enrichment != null){
+        for (File recordFile in recordFiles){
+          enrichment.dataContainer.records.add(JsonToolkit.fromJson(JsonToolkit.jsonNodeFromFile(recordFile), "uid"))
+        }
+        enrichment.setStatusByCallback(Enrichment.ProcessingState.FINISHED)
       }
-      enrichment.setStatusByCallback(Enrichment.ProcessingState.FINISHED)
       return enrichment
     }
     return null
