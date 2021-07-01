@@ -56,23 +56,28 @@ class Onix2Reader extends AbstractOnixReader{
       return null
     }
     for (Node field in product.value()){
-      Map.Entry entry = readItemEntry(field.name().localPart, field.value()[0])
-      if (entry != null){
-        result.put(entry.key, entry.value)
+      for (def node in field.value()){
+        List<Map.Entry> entries = new ArrayList<>()
+        entries = readItemEntries(entries, field.name().localPart, node)
+        for (Map.Entry entry in entries){
+          result.put(entry.key, entry.value)
+        }
       }
     }
     return result
   }
 
 
-  private Map.Entry<String, String> readItemEntry(String fieldName, Object fieldValue){
+  private List<Map.Entry<String, String>> readItemEntries(List<Map.Entry> entries, String fieldName, Object fieldValue){
     if (fieldValue instanceof String){
-      return new AbstractMap.SimpleEntry<String, Integer>(fieldName, fieldValue)
+      entries.add(new AbstractMap.SimpleEntry<String, Integer>(fieldName, fieldValue))
     }
     if (fieldValue instanceof Node){
-      return readItemEntry("$fieldName:${fieldValue.name().localPart}", fieldValue.value()[0])
+      for (def node in fieldValue.value()){
+        readItemEntries(entries, "$fieldName:${fieldValue.name().localPart}", node)
+      }
     }
-    return null
+    return entries
   }
 
 
