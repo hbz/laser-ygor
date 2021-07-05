@@ -29,7 +29,9 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)
       storeRecord(record, dataContainer)
 
-      // TODO: Ensure to ignore non-specified fields
+      // TODO: Ensure to ignore non-specified fields?
+
+
       // TODO: Assert field contributor:B034 to be "1" to ensure to get firstAuthor
       // TODO: Assert LanguageRole / b253 to be "1" when setting language
       // TODO: Assert publisher:b291 to be "01" when setting publisher (see https://ns.editeur.org/onix/de/45)

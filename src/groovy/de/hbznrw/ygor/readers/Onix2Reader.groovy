@@ -55,29 +55,39 @@ class Onix2Reader extends AbstractOnixReader{
     if (product == null){
       return null
     }
-    for (Node field in product.value()){
-      for (def node in field.value()){
-        List<Map.Entry> entries = new ArrayList<>()
-        entries = readItemEntries(entries, field.name().localPart, node)
-        for (Map.Entry entry in entries){
-          result.put(entry.key, entry.value)
-        }
+    product.eachWithIndex{ def node, int i ->
+      List<Map.Entry> entries = new ArrayList<>()
+      entries = readItemEntries(entries, "", node, i)
+      for (Map.Entry entry in entries){
+        addEntry(result, entry)
       }
     }
     return result
   }
 
 
-  private List<Map.Entry<String, String>> readItemEntries(List<Map.Entry> entries, String fieldName, Object fieldValue){
+  private List<Map.Entry<String, String>> readItemEntries(List<Map.Entry> entries, String fieldName,
+                                                          Object fieldValue, int i){
     if (fieldValue instanceof String){
       entries.add(new AbstractMap.SimpleEntry<String, Integer>(fieldName, fieldValue))
     }
     if (fieldValue instanceof Node){
-      for (def node in fieldValue.value()){
-        readItemEntries(entries, "$fieldName:${fieldValue.name().localPart}", node)
+      String prefix = fieldName.equals("") ? "" : fieldName.concat(":")
+      fieldValue.eachWithIndex{ def node, int j ->
+        if (node instanceof Node){
+          readItemEntries(entries, "$prefix${fieldValue.name().localPart}:$i".toString(), node, j)
+        }
+        else{
+          readItemEntries(entries, "$prefix${fieldValue.name().localPart}".toString(), node, j)
+        }
       }
     }
     return entries
+  }
+
+
+  private void addEntry(Map<String, String> entries, Map.Entry entry){
+    entries.put(entry.key, entry.value)
   }
 
 
