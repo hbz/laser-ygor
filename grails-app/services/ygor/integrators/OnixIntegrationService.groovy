@@ -25,14 +25,18 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       lastUpdate = LocalDate.parse(DateNormalizer.getDateString(owner.enrichment.lastProcessingDate))
     }
     TreeMap<String, String> item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
+    return
     while (item != null) {
+
+      item = filterContributorsForFirstAuthor(item)
+
       Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)
       storeRecord(record, dataContainer)
 
       // TODO: Ensure to ignore non-specified fields?
 
 
-      // TODO: Assert field contributor:B034 to be "1" to ensure to get firstAuthor
+      // TODO: Assert field contributor:b034 to be "1" to ensure to get firstAuthor
       // TODO: Assert LanguageRole / b253 to be "1" when setting language
       // TODO: Assert publisher:b291 to be "01" when setting publisher (see https://ns.editeur.org/onix/de/45)
 
@@ -45,7 +49,45 @@ class OnixIntegrationService extends BaseDataIntegrationService{
 
       item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     }
-    return
+  }
+
+
+  private TreeMap<String, String> filterContributorsForFirstAuthor(TreeMap<String, String> item){
+    item = filterByCriterium(item, "contributor", "b034", "1")
+    return item
+  }
+
+
+  private TreeMap<String, String> filterByCriterium(TreeMap<String, String> item, String commonNode,
+                                                    String criteriumField, String criteriumValue){
+    List<Integer> filterIndices = new ArrayList<>()
+    for (def entry in item){
+      String path = new String(entry.key)
+      boolean validPath = true
+      Integer index = null
+      for (String nodePathWord in commonNode.split(":")){
+        if (path.startsWith("$nodePathWord:")){
+          path = path.substring(nodePathWord.length() + 1)
+          if (path.matches("^[0-9]+:")){
+            index = Integer.valueOf(path.substring(0, path.indexOf(":")))
+            path = path.substring(path.indexOf(":"))
+          }
+        }
+        else{
+          validPath = false
+        }
+      }
+      if (path.equals(criteriumField)){
+        if (entry.value != criteriumValue){
+          filterIndices.add(index)
+        }
+      }
+    }
+
+
+    Iterator iterator = item.iterator()
+
+    return item
   }
 
 }
