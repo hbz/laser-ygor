@@ -25,9 +25,7 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       lastUpdate = LocalDate.parse(DateNormalizer.getDateString(owner.enrichment.lastProcessingDate))
     }
     TreeMap<String, String> item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
-    return
     while (item != null) {
-
       item = filterContributorsForFirstAuthor(item)
 
       Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)
@@ -60,16 +58,19 @@ class OnixIntegrationService extends BaseDataIntegrationService{
 
   private TreeMap<String, String> filterByCriterium(TreeMap<String, String> item, String commonNode,
                                                     String criteriumField, String criteriumValue){
-    List<Integer> filterIndices = new ArrayList<>()
+    List<String> filterIndices = new ArrayList<>()
+    List<String> filterCandidates = new ArrayList<>()
+    int pathLength = 0
     for (def entry in item){
       String path = new String(entry.key)
       boolean validPath = true
-      Integer index = null
+      String index = null
+
       for (String nodePathWord in commonNode.split(":")){
         if (path.startsWith("$nodePathWord:")){
           path = path.substring(nodePathWord.length() + 1)
-          if (path.matches("^[0-9]+:")){
-            index = Integer.valueOf(path.substring(0, path.indexOf(":")))
+          if (path.matches("^[0-9]+:.*")){
+            index = path.substring(0, path.indexOf(":"))
             path = path.substring(path.indexOf(":"))
           }
         }
@@ -77,16 +78,27 @@ class OnixIntegrationService extends BaseDataIntegrationService{
           validPath = false
         }
       }
-      if (path.equals(criteriumField)){
-        if (entry.value != criteriumValue){
-          filterIndices.add(index)
+      if (validPath){
+        filterCandidates.add(entry.key)
+        if (path.substring(1).equals(criteriumField)){
+          if (entry.value != criteriumValue){
+            pathLength = entry.key.length() - path.length()
+            filterIndices.add(index)
+          }
         }
       }
     }
-
-
-    Iterator iterator = item.iterator()
-
+    Iterator iterator = filterCandidates.iterator()
+    while (iterator.hasNext()){
+      String filterCandidateKey = iterator.next()
+      for (String filterNumber in filterIndices){
+        int lastIndex = pathLength
+        int firstIndex = lastIndex-filterNumber.length()
+        if (filterCandidateKey.substring(firstIndex, lastIndex).equals(filterNumber)){
+          item.remove(filterCandidateKey)
+        }
+      }
+    }
     return item
   }
 
