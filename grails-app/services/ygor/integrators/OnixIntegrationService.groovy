@@ -27,6 +27,7 @@ class OnixIntegrationService extends BaseDataIntegrationService{
     TreeMap<String, String> item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     while (item != null) {
       item = filterContributorsForFirstAuthor(item)
+      item = filterByLanguageRole(item)
 
       Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)
       storeRecord(record, dataContainer)
@@ -34,7 +35,6 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       // TODO: Ensure to ignore non-specified fields?
 
 
-      // TODO: Assert field contributor:b034 to be "1" to ensure to get firstAuthor
       // TODO: Assert LanguageRole / b253 to be "1" when setting language
       // TODO: Assert publisher:b291 to be "01" when setting publisher (see https://ns.editeur.org/onix/de/45)
 
@@ -52,6 +52,12 @@ class OnixIntegrationService extends BaseDataIntegrationService{
 
   private TreeMap<String, String> filterContributorsForFirstAuthor(TreeMap<String, String> item){
     item = filterByCriterium(item, "contributor", "b034", "1")
+    return item
+  }
+
+
+  private TreeMap<String, String> filterByLanguageRole(TreeMap<String, String> item){
+    item = filterByCriterium(item, "language", "b253", "01")
     return item
   }
 
