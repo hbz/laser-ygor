@@ -1,19 +1,28 @@
 package ygor
 
 import grails.test.mixin.TestFor
+import org.junit.Test
 import spock.lang.Specification
 
-/**
- * See the API for {@link grails.test.mixin.web.ControllerUnitTestMixin} for usage instructions
- */
 @TestFor(EnrichmentController)
-class EnrichmentControllerSpec extends Specification {
+class EnrichmentControllerSpec extends Specification{
 
-  def setup() {
-    true
+  void setup() {
+    grailsApplication.config.gokbApi.xrPackageUri = "http://localhost:8080/integration/crossReferencePackage"
   }
 
-  def cleanup() {
-    true
+  @Test
+  void testPackageWithTitlesAddOnlyFalse() {
+
+    given:
+    ControllersHelper helper = new EnrichmentController()
+    grailsApplication
+
+    when:
+    String uri = helper.getDestinationUri(grailsApplication, Enrichment.FileType.PACKAGE_WITH_TITLEDATA, false)
+
+    then:
+    uri == "http://localhost:8080/integration/crossReferencePackage?async=true"
   }
+
 }
