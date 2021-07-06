@@ -12,7 +12,7 @@ import ygor.integrators.KbartIntegrationService
 /**
  * See the API for {@link grails.test.mixin.domain.DomainClassUnitTestMixin} for usage instructions
  */
-@TestFor(KbartIntegrationService)
+// @TestFor(KbartIntegrationService)
 @TestMixin(ServiceUnitTestMixin)
 class KbartIntegrationServiceSpec /*extends HibernateSpec implements ServiceUnitTest<KbartIntegrationService>*/ {
 

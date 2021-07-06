@@ -1,6 +1,6 @@
 package de.hbznrw.ygor.export
 
-import de.hbznrw.ygor.export.structure.TitleStruct
+
 import de.hbznrw.ygor.validators.Validator
 import grails.test.mixin.TestMixin
 import grails.test.mixin.support.GrailsUnitTestMixin

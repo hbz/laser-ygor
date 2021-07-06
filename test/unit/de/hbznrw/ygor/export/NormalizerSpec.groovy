@@ -1,7 +1,6 @@
 package de.hbznrw.ygor.export
 
 import de.hbznrw.ygor.readers.ZdbReader
-import de.hbznrw.ygor.export.structure.TitleStruct
 import de.hbznrw.ygor.normalizers.*
 import grails.test.mixin.TestMixin
 import grails.test.mixin.support.GrailsUnitTestMixin
