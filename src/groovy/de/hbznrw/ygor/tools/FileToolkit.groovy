@@ -1,12 +1,8 @@
 package de.hbznrw.ygor.tools
 
-import ygor.Record
-
 import java.security.MessageDigest
 import java.nio.file.Paths
 import org.codehaus.groovy.runtime.DateGroovyMethods
-import org.springframework.core.io.Resource
-import grails.util.Holders
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
