@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.*
 import com.google.gson.Gson
 import de.hbznrw.ygor.format.YgorFormatter
+import de.hbznrw.ygor.normalizers.SplittingNormalizer
 import org.apache.commons.lang.StringUtils
 import org.codehaus.groovy.runtime.InvokerInvocationException
 import ygor.Record
@@ -16,6 +17,7 @@ import ygor.field.HistoryEvent
 import ygor.field.MultiField
 import groovy.util.logging.Log4j
 
+import javax.xml.soap.Text
 import java.lang.reflect.Method
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -124,7 +126,40 @@ class JsonToolkit {
         result.set("historyEvents", historyEvents)
       }
     }
+    splitResultField(result, "language")
+    splitResultField(result, "title.language")
     result
+  }
+
+
+  private static void splitResultField(ObjectNode recordNode, String fieldName){
+    List<String> fieldPath = fieldName.split("\\.")
+    JsonNode fieldNode = recordNode
+    for (String subFieldName in fieldPath){
+      fieldNode = fieldNode.get(subFieldName)
+      if (fieldNode == null){
+        break
+      }
+    }
+    if (fieldNode == null){
+      return
+    }
+    Set<String> allEntries = []
+    if (fieldNode instanceof ArrayNode){
+      for (JsonNode node in fieldNode){
+        if (node instanceof TextNode){
+          allEntries.addAll(SplittingNormalizer.splitField(node.asText()))
+        }
+      }
+    }
+    if (fieldNode instanceof TextNode){
+      allEntries.addAll(SplittingNormalizer.splitField(fieldNode.asText()))
+    }
+    ArrayNode arrayNode = MAPPER.createArrayNode()
+    for (String entry in allEntries){
+      arrayNode.add(entry)
+    }
+    fieldNode = arrayNode
   }
 
 
