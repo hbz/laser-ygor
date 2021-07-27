@@ -60,7 +60,7 @@ class Onix2Reader extends AbstractOnixReader{
       List<Map.Entry> entries = new ArrayList<>()
       entries = readItemEntries(entries, "", node, i)
       for (Map.Entry entry in entries){
-        addEntry(result, entry)
+        result.put(entry.key, entry.value)
       }
     }
     return result
@@ -97,11 +97,6 @@ class Onix2Reader extends AbstractOnixReader{
       nodeName = node.name()
     }
     return nodeName
-  }
-
-
-  private void addEntry(Map<String, String> entries, Map.Entry entry){
-    entries.put(entry.key, entry.value)
   }
 
 

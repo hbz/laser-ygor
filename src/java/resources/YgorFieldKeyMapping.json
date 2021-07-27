@@ -188,7 +188,7 @@
     "display" : "doi_identifier",
     "in" : {
       "kbart" : "doi_identifier",
-      "onix2" : "productidentifier:b221:06",
+      "onix2" : "productidentifier:b244(productidentifier:b221=06)",
       "zdb" : "2051:0",
       "ezb" : ""
     },
@@ -800,7 +800,7 @@
     "display" : "print_identifier",
     "in" : {
       "kbart" : "print_identifier",
-      "onix2" : ["productidentifier:b221:15", "productidentifier:b221:02"],
+      "onix2" : "productidentifier:b244(productidentifier:b221=02,15)",
       "zdb" : "",
       "ezb" : ""
     },

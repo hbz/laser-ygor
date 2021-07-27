@@ -4,10 +4,14 @@ import de.hbznrw.ygor.export.DataContainer
 import de.hbznrw.ygor.normalizers.DateNormalizer
 import de.hbznrw.ygor.processing.MultipleProcessingThread
 import de.hbznrw.ygor.readers.Onix2Reader
+import org.apache.commons.lang.StringUtils
 import ygor.Record
+import ygor.field.Field
 import ygor.field.FieldKeyMapping
 import ygor.field.MappingsContainer
+import ygor.field.MultiField
 
+import javax.swing.plaf.multi.MultiInternalFrameUI
 import java.time.LocalDate
 
 class OnixIntegrationService extends BaseDataIntegrationService{
@@ -38,8 +42,9 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       // TODO: Discuss, which Ygor date field PublicationDate / b003 should be mapped to
       //       (see : https://vlb.de/hilfe/vlb-onix-empfehlungen/onix-im-vlb-uebersicht)
 
-      item = removeAllIndices(item)
+      // item = removeAllIndices(item)
       Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)
+      record = setIdentifiers(record)
       storeRecord(record, dataContainer)
       item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
     }
@@ -55,6 +60,43 @@ class OnixIntegrationService extends BaseDataIntegrationService{
   private TreeMap<String, String> filterByLanguageRole(TreeMap<String, String> item){
     item = filterByCriterium(item, "language", "b253", "01")
     return item
+  }
+
+
+  private Record setIdentifiers(Record record){
+    Set<String> indices = []
+    for (String multiFieldName in record.multiFields.keySet()){
+      if (multiFieldName.startsWith("productidentifier")){
+        String index = StringUtils.substringBetween(multiFieldName, ":", ":")
+        indices.add(index)
+      }
+    }
+    Map<String, String> typeValueMap = [:]
+    for (String index in indices){
+      MultiField typeField = record.multiFields.get("productidentifier:$index:b221".toString())
+      MultiField valueField = record.multiFields.get("productidentifier:$index:b244".toString())
+      if (typeField && valueField){
+        typeValueMap.put(typeField.getFirstPrioValue(), valueField.getFirstPrioValue())
+      }
+    }
+    // productidentifier type (b244) entries with type 03 or 15 are ISBNs
+    for (String index in ["3", "03", "15"]){
+      if (typeValueMap.get(index)){
+        MultiField printIdentifier = record.multiFields.get("printIdentifier")
+        Field value = new Field(MappingsContainer.ONIX2, "productIdentifier:$index".toString(), typeValueMap.get(index))
+        printIdentifier.addField(value)
+        break
+      }
+    }
+    // productidentifier type (b244) entries with type 06 are DOIs
+    for (String index in ["6", "06"]){
+      if (typeValueMap.get(index)){
+        MultiField doiIdentifier = record.multiFields.get("doiIdentifier")
+        Field value = new Field(MappingsContainer.ONIX2, "productIdentifier:$index".toString(), typeValueMap.get(index))
+        doiIdentifier.addField(value)
+      }
+    }
+    return record
   }
 
 
