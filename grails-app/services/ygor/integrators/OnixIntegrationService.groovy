@@ -84,31 +84,26 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       }
     }
     // productidentifier type (b244) entries with type 03 or 15 are ISBNs
-    for (String type in ["03", "15", "3"]){
-      if (typeValueMap.get(type)){
-        MultiField printIdentifier = record.multiFields.get("printIdentifier")
-        Field value = new Field(MappingsContainer.ONIX2, "productidentifier:b244(productidentifier:b221 in [03,15])",
-            typeValueMap.get(type))
-        printIdentifier.addField(value)
-        for (def removeFields in indexedFieldsToBeRemoved){
-          if (removeFields.key in ["03", "15", "3"]){
-            for (MultiField removeField in removeFields.value){
-              record.multiFields.remove(removeField.ygorFieldKey)
-            }
-          }
-        }
-        break
-      }
-    }
+    moveIdField(["03", "15", "3"], typeValueMap, record, indexedFieldsToBeRemoved,
+        "productidentifier:b244(productidentifier:b221 in [03,15])", "printIdentifier")
     // productidentifier type (b244) entries with type 06 are DOIs
-    for (String type in ["06", "6"]){
+    moveIdField(["06", "6"], typeValueMap, record, indexedFieldsToBeRemoved,
+        "productidentifier:b244(productidentifier:b221 = 06)", "doiIdentifier")
+    return record
+  }
+
+
+  private void moveIdField(List<String> types, LinkedHashMap<String, String> typeValueMap, Record record,
+                           LinkedHashMap<String, List<MultiField>> indexedFieldsToBeRemoved,
+                           String fromFieldKey, String toFieldKey){
+    for (String type in types){
       if (typeValueMap.get(type)){
-        MultiField doiIdentifier = record.multiFields.get("doiIdentifier")
-        Field value = new Field(MappingsContainer.ONIX2, "productidentifier:b244(productidentifier:b221 = 06)",
+        MultiField idField = record.multiFields.get(toFieldKey)
+        Field value = new Field(MappingsContainer.ONIX2, fromFieldKey,
             typeValueMap.get(type))
-        doiIdentifier.addField(value)
+        idField.addField(value)
         for (def removeFields in indexedFieldsToBeRemoved){
-          if (removeFields.key in ["06", "6"]){
+          if (removeFields.key in types){
             for (MultiField removeField in removeFields.value){
               record.multiFields.remove(removeField.ygorFieldKey)
             }
@@ -117,7 +112,6 @@ class OnixIntegrationService extends BaseDataIntegrationService{
         break
       }
     }
-    return record
   }
 
 
