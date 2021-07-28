@@ -39,8 +39,8 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       // TODO: Ensure to ignore non-specified fields?
       // TODO: Discuss setting "mainsubject" : this can have multiple formats and variations
       //       (see : https://ns.editeur.org/onix36/en/26)
-      // TODO: Discuss use of "productwebsite" : this can have variations
-      //       (see : https://ns.editeur.org/onix/de/73)
+      // TODO: Discuss use of "productwebsite" (b295) : this can have variations
+      //       (see : https://vlb.de/hilfe/vlb-onix-empfehlungen/onix-im-vlb-uebersicht, https://ns.editeur.org/onix/de/73)
       // TODO: Discuss, which Ygor date field PublicationDate / b003 should be mapped to
       //       (see : https://vlb.de/hilfe/vlb-onix-empfehlungen/onix-im-vlb-uebersicht)
 
