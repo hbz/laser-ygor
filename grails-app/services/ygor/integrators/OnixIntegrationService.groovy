@@ -67,6 +67,7 @@ class OnixIntegrationService extends BaseDataIntegrationService{
 
   private Record setIdentifiers(Record record){
     Set<String> indices = []
+    Map<String, List<MultiField>> indexedFieldsToBeRemoved = [:]
     for (String multiFieldName in record.multiFields.keySet()){
       if (multiFieldName.startsWith("productidentifier")){
         String index = StringUtils.substringBetween(multiFieldName, SIMPLE_DELIMITER, SIMPLE_DELIMITER)
@@ -79,23 +80,41 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       MultiField valueField = record.multiFields.get("productidentifier:$index:b244".toString())
       if (typeField && valueField){
         typeValueMap.put(typeField.getFirstPrioValue(), valueField.getFirstPrioValue())
+        indexedFieldsToBeRemoved.put(typeField.getFirstPrioValue(), [typeField, valueField])
       }
     }
     // productidentifier type (b244) entries with type 03 or 15 are ISBNs
-    for (String index in ["3", "03", "15"]){
-      if (typeValueMap.get(index)){
+    for (String type in ["03", "15", "3"]){
+      if (typeValueMap.get(type)){
         MultiField printIdentifier = record.multiFields.get("printIdentifier")
-        Field value = new Field(MappingsContainer.ONIX2, "productIdentifier:$index".toString(), typeValueMap.get(index))
+        Field value = new Field(MappingsContainer.ONIX2, "productidentifier:b244(productidentifier:b221 in [03,15])",
+            typeValueMap.get(type))
         printIdentifier.addField(value)
+        for (def removeFields in indexedFieldsToBeRemoved){
+          if (removeFields.key in ["03", "15", "3"]){
+            for (MultiField removeField in removeFields.value){
+              record.multiFields.remove(removeField.ygorFieldKey)
+            }
+          }
+        }
         break
       }
     }
     // productidentifier type (b244) entries with type 06 are DOIs
-    for (String index in ["6", "06"]){
-      if (typeValueMap.get(index)){
+    for (String type in ["06", "6"]){
+      if (typeValueMap.get(type)){
         MultiField doiIdentifier = record.multiFields.get("doiIdentifier")
-        Field value = new Field(MappingsContainer.ONIX2, "productIdentifier:$index".toString(), typeValueMap.get(index))
+        Field value = new Field(MappingsContainer.ONIX2, "productidentifier:b244(productidentifier:b221 = 06)",
+            typeValueMap.get(type))
         doiIdentifier.addField(value)
+        for (def removeFields in indexedFieldsToBeRemoved){
+          if (removeFields.key in ["06", "6"]){
+            for (MultiField removeField in removeFields.value){
+              record.multiFields.remove(removeField.ygorFieldKey)
+            }
+          }
+        }
+        break
       }
     }
     return record
