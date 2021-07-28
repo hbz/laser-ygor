@@ -11,10 +11,12 @@ import ygor.field.FieldKeyMapping
 import ygor.field.MappingsContainer
 import ygor.field.MultiField
 
-import javax.swing.plaf.multi.MultiInternalFrameUI
 import java.time.LocalDate
 
 class OnixIntegrationService extends BaseDataIntegrationService{
+
+  final static String INDEX_DELIMITER_REGEX = ":[0-9]+:"
+  final static String SIMPLE_DELIMITER = ":"
 
   OnixIntegrationService(MappingsContainer mappingsContainer) {
     this.mappingsContainer = mappingsContainer
@@ -42,8 +44,8 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       // TODO: Discuss, which Ygor date field PublicationDate / b003 should be mapped to
       //       (see : https://vlb.de/hilfe/vlb-onix-empfehlungen/onix-im-vlb-uebersicht)
 
-      // item = removeAllIndices(item)
       Record record = createRecordFromItem(item, idMappings, owner, MappingsContainer.ONIX2)
+      record = moveValuesToConfiguredMultiFields(record)
       record = setIdentifiers(record)
       storeRecord(record, dataContainer)
       item = reader.readItemData(lastUpdate, owner.enrichment.ignoreLastChanged)
@@ -67,7 +69,7 @@ class OnixIntegrationService extends BaseDataIntegrationService{
     Set<String> indices = []
     for (String multiFieldName in record.multiFields.keySet()){
       if (multiFieldName.startsWith("productidentifier")){
-        String index = StringUtils.substringBetween(multiFieldName, ":", ":")
+        String index = StringUtils.substringBetween(multiFieldName, SIMPLE_DELIMITER, SIMPLE_DELIMITER)
         indices.add(index)
       }
     }
@@ -107,12 +109,35 @@ class OnixIntegrationService extends BaseDataIntegrationService{
   }
 
 
-  private TreeMap<String, String> removeAllIndices(TreeMap<String, String> item){
-    Map<String, String> result = new TreeMap<>()
-    for (def entry in item){
-      result.put(entry.key.replaceAll(":[0-9]+:", ":"), entry.value)
+  private Record moveValuesToConfiguredMultiFields(Record record){
+    List<MultiField> indexFieldsToBeRemoved = []
+    // Iterate over index-delimited MultiFields
+    for (def multiFieldEntry in record.multiFields){
+      if (multiFieldEntry.key.matches(".*".concat(INDEX_DELIMITER_REGEX).concat(".*"))){
+        // Check if there is a corresponding non-index-delimited MultiField
+        String to = multiFieldEntry.key.replaceAll(INDEX_DELIMITER_REGEX, SIMPLE_DELIMITER)
+        FieldKeyMapping mapping = mappingsContainer.onix2Mappings.get(to)
+        if (mapping == null){
+          // there is no configured target field --> nothing to do
+          continue
+        }
+        MultiField toField = record.multiFields.get(mapping.ygorKey)
+        if (toField && !toField.ygorFieldKey.equals(multiFieldEntry.key)){
+          // then copy the simple value Field to that MultiField
+          List<Field> onix2Fields = multiFieldEntry.value.getFields(MappingsContainer.ONIX2)
+          for (Field onix2Field in onix2Fields){
+            onix2Field.key = onix2Field.key.replaceAll(INDEX_DELIMITER_REGEX, SIMPLE_DELIMITER)
+            toField.addField(onix2Field)
+          }
+          // and list the MultiField for removal / remove it
+          indexFieldsToBeRemoved.add(multiFieldEntry.value)
+        }
+      }
     }
-    return result
+    for (MultiField removeField in indexFieldsToBeRemoved){
+      record.multiFields.remove(removeField.ygorFieldKey)
+    }
+    return record
   }
 
 
@@ -126,12 +151,12 @@ class OnixIntegrationService extends BaseDataIntegrationService{
       boolean validPath = true
       String index = null
 
-      for (String nodePathWord in commonNode.split(":")){
+      for (String nodePathWord in commonNode.split(SIMPLE_DELIMITER)){
         if (path.startsWith("$nodePathWord:")){
           path = path.substring(nodePathWord.length() + 1)
           if (path.matches("^[0-9]+:.*")){
-            index = path.substring(0, path.indexOf(":"))
-            path = path.substring(path.indexOf(":"))
+            index = path.substring(0, path.indexOf(SIMPLE_DELIMITER))
+            path = path.substring(path.indexOf(SIMPLE_DELIMITER))
           }
         }
         else{
