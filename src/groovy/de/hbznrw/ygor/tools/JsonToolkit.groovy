@@ -67,26 +67,22 @@ class JsonToolkit {
   }
 
 
-  static ObjectNode getTippJsonFromRecord(String target, Record record, YgorFormatter formatter,
-                                          char multiValueSeparator) {
-    getJsonFromRecord(new ArrayList(Arrays.asList("\$TIPP")), target, record, formatter, multiValueSeparator)
+  static ObjectNode getTippJsonFromRecord(String target, Record record, char multiValueSeparator) {
+    getJsonFromRecord(new ArrayList(Arrays.asList("\$TIPP")), target, record, multiValueSeparator)
   }
 
 
-  static ObjectNode getTitleJsonFromRecord(String target, Record record, YgorFormatter formatter,
-                                           char multiValueSeparator) {
-    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE")), target, record, formatter, multiValueSeparator)
+  static ObjectNode getTitleJsonFromRecord(String target, Record record, char multiValueSeparator) {
+    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE")), target, record, multiValueSeparator)
   }
 
 
-  static ObjectNode getCombinedTitleTippJsonFromRecord(String target, Record record, YgorFormatter formatter,
-                                                       char multiValueSeparator) {
-    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE", "\$TIPP")), target, record, formatter, multiValueSeparator)
+  static ObjectNode getCombinedTitleTippJsonFromRecord(String target, Record record, char multiValueSeparator) {
+    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE", "\$TIPP")), target, record, multiValueSeparator)
   }
 
 
-  private static ObjectNode getJsonFromRecord(List<String> typeFilter, String target, Record record,
-                                              YgorFormatter formatter, char multiValueSeparator) {
+  private static ObjectNode getJsonFromRecord(List<String> typeFilter, String target, Record record, char multiValueSeparator) {
     ArrayList concatKeyStub = new ArrayList<>(typeFilter)
     if (concatKeyStub.size() == 2 && concatKeyStub.contains("\$TITLE") && concatKeyStub.contains("\$TIPP")){
       concatKeyStub.remove("\$TITLE")
@@ -101,7 +97,7 @@ class JsonToolkit {
           concatKey.addAll(it.next().key)
         }
         upsertIntoJsonNode(result, concatKey, value, multiField.type, multiField.isMultiValueCapable,
-            multiValueSeparator, formatter, false)
+            multiValueSeparator, false)
       }
       else {
         Set qualifiedKeys = multiField.keyMapping."${target}"
@@ -110,7 +106,7 @@ class JsonToolkit {
           if (splitKey.size() > 1 && splitKey[0] in typeFilter) {
             def value = multiField.getFirstPrioValue()
             upsertIntoJsonNode(result, splitKey, value, multiField.type, multiField.isMultiValueCapable,
-                multiValueSeparator, formatter, multiField.keyMapping.keepIfEmpty)
+                multiValueSeparator, multiField.keyMapping.keepIfEmpty)
           }
         }
       }
@@ -164,8 +160,7 @@ class JsonToolkit {
 
 
   private static void upsertIntoJsonNode(JsonNode root, ArrayList<String> keyPath, String value, String type,
-                                         boolean isMultiValueCapable, char multiValueSeparator, YgorFormatter formatter,
-                                         boolean keepIfEmpty) {
+                                         boolean isMultiValueCapable, char multiValueSeparator, boolean keepIfEmpty) {
     if (keyPath.size() <= 1){
       return
     }
@@ -176,7 +171,7 @@ class JsonToolkit {
     else {
       if (keyPath.get(1).equals(ARRAY)) {
         upsertIntoJsonNode(root, keyPath[1..keyPath.size() - 1], value, type, isMultiValueCapable, multiValueSeparator,
-            formatter, keepIfEmpty)
+            keepIfEmpty)
       }
       else if (keyPath.get(1).equals(COUNT)) {
         // TODO until now, only 1 element in array is supported ==> implement count
@@ -184,7 +179,7 @@ class JsonToolkit {
           root.add(new ObjectNode(NODE_FACTORY))
         }
         upsertIntoJsonNode(root.get(0), keyPath[1..keyPath.size() - 1], value, type, isMultiValueCapable,
-            multiValueSeparator, formatter, keepIfEmpty)
+            multiValueSeparator, keepIfEmpty)
       }
       else {
         JsonNode subNode = getSubNode(keyPath, value, keepIfEmpty, isMultiValueCapable, multiValueSeparator)
@@ -192,7 +187,7 @@ class JsonToolkit {
         if (keyPath.size() > 2) {
           // root is not final leaf --> iterate
           upsertIntoJsonNode(subNode, keyPath[1..keyPath.size() - 1], value, type, isMultiValueCapable,
-              multiValueSeparator, formatter, keepIfEmpty)
+              multiValueSeparator, keepIfEmpty)
         }
       }
     }
