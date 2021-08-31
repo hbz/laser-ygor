@@ -1,18 +1,32 @@
 package de.hbznrw.ygor.normalizers
 
+import org.apache.commons.lang.StringUtils
+
 class SplittingNormalizer{
 
-  static List<String> multiValueDelimiters = ["/", "|", "\\", ",", ";", "(", ")"]
+  static List<Character> multiValueDelimiters = ['/', '|', '\\', ',', ';']
 
-  static List<String> splitField(String language){
-    for (String delimiter in multiValueDelimiters){
-      if (language.contains(delimiter)){
-        List<String> languages = language.split(delimiter) as List
-        languages*.trim()
-        return languages
+
+  static Character getDelimiter(String values){
+    for (Character delimiter in multiValueDelimiters){
+      if (values.contains(String.valueOf(delimiter))){
+        return delimiter
       }
     }
+    return null
+  }
+
+
+  static List<String> splitField(String values, String delimiter = null){
+    if (delimiter == null){
+      delimiter = getDelimiter(values)
+    }
+    if (!StringUtils.isEmpty(delimiter) && values.contains(delimiter)){
+      List<String> splitValues = values.split(delimiter) as List
+      splitValues*.trim()
+      return splitValues
+    }
     // else
-    return [language]
+    return [values]
   }
 }
