@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.*
 import com.google.gson.Gson
+import com.sun.xml.internal.bind.v2.TODO
 import de.hbznrw.ygor.format.YgorFormatter
 import de.hbznrw.ygor.normalizers.SplittingNormalizer
 import org.apache.commons.lang.StringUtils
@@ -130,15 +131,14 @@ class JsonToolkit {
 
   private static void splitResultField(ObjectNode recordNode, String fieldName){
     List<String> fieldPath = fieldName.split("\\.")
+    JsonNode outerNode
     JsonNode fieldNode = recordNode
     for (String subFieldName in fieldPath){
+      outerNode = fieldNode
       fieldNode = fieldNode.get(subFieldName)
       if (fieldNode == null){
-        break
+        return
       }
-    }
-    if (fieldNode == null){
-      return
     }
     Set<String> allEntries = []
     if (fieldNode instanceof ArrayNode){
@@ -155,8 +155,9 @@ class JsonToolkit {
     for (String entry in allEntries){
       arrayNode.add(entry)
     }
-    fieldNode = arrayNode
+    outerNode.set(fieldPath.get(fieldPath.size()-1), arrayNode)
   }
+
 
 
   private static void upsertIntoJsonNode(JsonNode root, ArrayList<String> keyPath, String value, String type,
