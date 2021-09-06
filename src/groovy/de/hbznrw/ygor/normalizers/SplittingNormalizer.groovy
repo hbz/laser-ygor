@@ -23,8 +23,7 @@ class SplittingNormalizer{
     }
     if (!StringUtils.isEmpty(delimiter) && values.contains(delimiter)){
       List<String> splitValues = values.split(delimiter) as List
-      splitValues*.trim()
-      return splitValues
+      return splitValues*.trim()
     }
     // else
     return [values]
