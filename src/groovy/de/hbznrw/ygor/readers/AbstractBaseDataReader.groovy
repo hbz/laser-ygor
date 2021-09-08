@@ -23,7 +23,10 @@ abstract class AbstractBaseDataReader{
     return false
   }
 
-  abstract static List<String> getValidEncodings()
+  static List<String> getValidEncodings(){
+    // to be overridden
+    return null
+  }
 
   static Class determineReader(CommonsMultipartFile baseDataFile){
     if (KbartReader.isValidFile(baseDataFile)){
