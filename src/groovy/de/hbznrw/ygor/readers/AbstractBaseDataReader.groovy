@@ -18,7 +18,10 @@ abstract class AbstractBaseDataReader{
 
   abstract void checkFields() throws Exception
 
-  abstract static boolean isValidFile(CommonsMultipartFile file)
+  static boolean isValidFile(CommonsMultipartFile file){
+    // to be overridden
+    return false
+  }
 
   abstract static List<String> getValidEncodings()
 
