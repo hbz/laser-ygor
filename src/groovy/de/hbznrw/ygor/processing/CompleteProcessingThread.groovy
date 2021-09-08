@@ -60,6 +60,7 @@ class CompleteProcessingThread extends Thread {
       log.info("Checking for usable URLs..")
       Locale locale = new Locale("en")                                    // TODO get from request or package
       boolean proceeding = false
+      Enrichment enrichment
       List<URL> updateUrls
       if (Integer.valueOf(pkg._tippCount) == 0){
         // this is obviously a new package --> update with older timestamp
@@ -89,7 +90,6 @@ class CompleteProcessingThread extends Thread {
             continue
           }
 
-          Enrichment enrichment
           try {
             enrichment = prepareEnrichment(token, sessionFolder, pkg, src, "false", ignoreLastChanged, url.toString())
             log.info("Prepared enrichment ${enrichment.originName}.")
@@ -116,12 +116,24 @@ class CompleteProcessingThread extends Thread {
         }
         if (!proceeding) {
           log.info("All valid URLs produced errors.")
-          uploadJobFrame.status = UploadThreadGokb.Status.ERROR
+          uploadJobFrame.ygorFeedback.reportingComponent = this.getClass()
+          if (enrichment == null){
+            uploadJobFrame.ygorFeedback.statusDescription.concat(" Tested ${updateUrls.size()} update URLs but none of them was existent.")
+            uploadJobFrame.ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.FINISHED_WITHOUT_RESULT
+            uploadJobFrame.status = UploadThreadGokb.Status.FINISHED_WITHOUT_RESULT
+          }
+          else{
+            uploadJobFrame.ygorFeedback.statusDescription.concat(" Could not process data from update URL ${enrichment.dataContainer?.pkgHeader?.updateURL}.")
+            uploadJobFrame.ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
+            uploadJobFrame.status = UploadThreadGokb.Status.ERROR
+          }
         }
       }
       else {
         log.info("No usable URLs, skipping job!")
-        uploadJobFrame.status = UploadThreadGokb.Status.FINISHED_UNDEFINED
+        uploadJobFrame.ygorFeedback.reportingComponent = this.getClass()
+        uploadJobFrame.status = UploadThreadGokb.Status.FINISHED_WITHOUT_RESULT
+        uploadJobFrame.ygorFeedback.statusDescription.concat(" Tried to obtain update URLs but got none.")
       }
     }
     else {
