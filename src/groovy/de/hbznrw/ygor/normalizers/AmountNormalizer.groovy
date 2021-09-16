@@ -12,7 +12,7 @@ class AmountNormalizer {
   final static Pattern CURRENCY_POST_PATTERN =
       Pattern.compile("(.*)((EUR|GBP|USD)\$)", Pattern.CASE_INSENSITIVE)
   final static Pattern AMOUNT_PATTERN_0 =
-      Pattern.compile("\\d+(\\.,\\d{1,2})?")
+      Pattern.compile("\\d+([\\.,]\\d{1,2})?")
   final static Pattern AMOUNT_PATTERN_1 =
       Pattern.compile("\\d{1,3}(\\.\\d{3})*(,\\d{1,2})?")
   final static Pattern AMOUNT_PATTERN_2 =
