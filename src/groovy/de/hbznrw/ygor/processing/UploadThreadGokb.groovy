@@ -56,6 +56,7 @@ abstract class UploadThreadGokb extends Thread{
   enum Status{
     PREPARATION,
     STARTED,
+    FINISHED_WITHOUT_RESULT,
     FINISHED_UNDEFINED,
     SUCCESS,
     ERROR

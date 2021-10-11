@@ -8,7 +8,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.*
 import com.google.gson.Gson
+import com.sun.xml.internal.bind.v2.TODO
 import de.hbznrw.ygor.format.YgorFormatter
+import de.hbznrw.ygor.normalizers.SplittingNormalizer
 import org.apache.commons.lang.StringUtils
 import org.codehaus.groovy.runtime.InvokerInvocationException
 import ygor.Record
@@ -16,6 +18,7 @@ import ygor.field.HistoryEvent
 import ygor.field.MultiField
 import groovy.util.logging.Log4j
 
+import javax.xml.soap.Text
 import java.lang.reflect.Method
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -65,26 +68,22 @@ class JsonToolkit {
   }
 
 
-  static ObjectNode getTippJsonFromRecord(String target, Record record, YgorFormatter formatter,
-                                          char multiValueSeparator) {
-    getJsonFromRecord(new ArrayList(Arrays.asList("\$TIPP")), target, record, formatter, multiValueSeparator)
+  static ObjectNode getTippJsonFromRecord(String target, Record record, char multiValueSeparator) {
+    getJsonFromRecord(new ArrayList(Arrays.asList("\$TIPP")), target, record, multiValueSeparator)
   }
 
 
-  static ObjectNode getTitleJsonFromRecord(String target, Record record, YgorFormatter formatter,
-                                           char multiValueSeparator) {
-    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE")), target, record, formatter, multiValueSeparator)
+  static ObjectNode getTitleJsonFromRecord(String target, Record record, char multiValueSeparator) {
+    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE")), target, record, multiValueSeparator)
   }
 
 
-  static ObjectNode getCombinedTitleTippJsonFromRecord(String target, Record record, YgorFormatter formatter,
-                                                       char multiValueSeparator) {
-    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE", "\$TIPP")), target, record, formatter, multiValueSeparator)
+  static ObjectNode getCombinedTitleTippJsonFromRecord(String target, Record record, char multiValueSeparator) {
+    getJsonFromRecord(new ArrayList(Arrays.asList("\$TITLE", "\$TIPP")), target, record, multiValueSeparator)
   }
 
 
-  private static ObjectNode getJsonFromRecord(List<String> typeFilter, String target, Record record,
-                                              YgorFormatter formatter, char multiValueSeparator) {
+  private static ObjectNode getJsonFromRecord(List<String> typeFilter, String target, Record record, char multiValueSeparator) {
     ArrayList concatKeyStub = new ArrayList<>(typeFilter)
     if (concatKeyStub.size() == 2 && concatKeyStub.contains("\$TITLE") && concatKeyStub.contains("\$TIPP")){
       concatKeyStub.remove("\$TITLE")
@@ -99,7 +98,7 @@ class JsonToolkit {
           concatKey.addAll(it.next().key)
         }
         upsertIntoJsonNode(result, concatKey, value, multiField.type, multiField.isMultiValueCapable,
-            multiValueSeparator, formatter, false)
+            multiValueSeparator, false)
       }
       else {
         Set qualifiedKeys = multiField.keyMapping."${target}"
@@ -108,7 +107,7 @@ class JsonToolkit {
           if (splitKey.size() > 1 && splitKey[0] in typeFilter) {
             def value = multiField.getFirstPrioValue()
             upsertIntoJsonNode(result, splitKey, value, multiField.type, multiField.isMultiValueCapable,
-                multiValueSeparator, formatter, multiField.keyMapping.keepIfEmpty)
+                multiValueSeparator, multiField.keyMapping.keepIfEmpty)
           }
         }
       }
@@ -124,13 +123,45 @@ class JsonToolkit {
         result.set("historyEvents", historyEvents)
       }
     }
+    splitResultField(result, "language")
+    splitResultField(result, "title.language")
     result
   }
 
 
+  private static void splitResultField(ObjectNode recordNode, String fieldName){
+    List<String> fieldPath = fieldName.split("\\.")
+    JsonNode outerNode
+    JsonNode fieldNode = recordNode
+    for (String subFieldName in fieldPath){
+      outerNode = fieldNode
+      fieldNode = fieldNode.get(subFieldName)
+      if (fieldNode == null){
+        return
+      }
+    }
+    Set<String> allEntries = []
+    if (fieldNode instanceof ArrayNode){
+      for (JsonNode node in fieldNode){
+        if (node instanceof TextNode){
+          allEntries.addAll(SplittingNormalizer.splitField(node.asText()))
+        }
+      }
+    }
+    if (fieldNode instanceof TextNode){
+      allEntries.addAll(SplittingNormalizer.splitField(fieldNode.asText()))
+    }
+    ArrayNode arrayNode = MAPPER.createArrayNode()
+    for (String entry in allEntries){
+      arrayNode.add(entry)
+    }
+    outerNode.set(fieldPath.get(fieldPath.size()-1), arrayNode)
+  }
+
+
+
   private static void upsertIntoJsonNode(JsonNode root, ArrayList<String> keyPath, String value, String type,
-                                         boolean isMultiValueCapable, char multiValueSeparator, YgorFormatter formatter,
-                                         boolean keepIfEmpty) {
+                                         boolean isMultiValueCapable, char multiValueSeparator, boolean keepIfEmpty) {
     if (keyPath.size() <= 1){
       return
     }
@@ -141,7 +172,7 @@ class JsonToolkit {
     else {
       if (keyPath.get(1).equals(ARRAY)) {
         upsertIntoJsonNode(root, keyPath[1..keyPath.size() - 1], value, type, isMultiValueCapable, multiValueSeparator,
-            formatter, keepIfEmpty)
+            keepIfEmpty)
       }
       else if (keyPath.get(1).equals(COUNT)) {
         // TODO until now, only 1 element in array is supported ==> implement count
@@ -149,7 +180,7 @@ class JsonToolkit {
           root.add(new ObjectNode(NODE_FACTORY))
         }
         upsertIntoJsonNode(root.get(0), keyPath[1..keyPath.size() - 1], value, type, isMultiValueCapable,
-            multiValueSeparator, formatter, keepIfEmpty)
+            multiValueSeparator, keepIfEmpty)
       }
       else {
         JsonNode subNode = getSubNode(keyPath, value, keepIfEmpty, isMultiValueCapable, multiValueSeparator)
@@ -157,7 +188,7 @@ class JsonToolkit {
         if (keyPath.size() > 2) {
           // root is not final leaf --> iterate
           upsertIntoJsonNode(subNode, keyPath[1..keyPath.size() - 1], value, type, isMultiValueCapable,
-              multiValueSeparator, formatter, keepIfEmpty)
+              multiValueSeparator, keepIfEmpty)
         }
       }
     }

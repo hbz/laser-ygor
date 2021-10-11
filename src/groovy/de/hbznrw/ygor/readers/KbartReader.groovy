@@ -36,7 +36,7 @@ class KbartReader {
   private CSVFormat csvFormat
   private List<String> csvHeader
   Iterator<CSVRecord> csvRecords
-  private CSVRecord lastItemReturned
+  CSVRecord lastItemReturned
   String fileName
   Date fileNameDate
   char delimiterChar

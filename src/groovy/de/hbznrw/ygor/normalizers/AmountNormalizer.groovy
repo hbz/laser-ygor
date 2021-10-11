@@ -11,8 +11,10 @@ class AmountNormalizer {
       Pattern.compile("(^(EUR|GBP|USD))(.*)", Pattern.CASE_INSENSITIVE)
   final static Pattern CURRENCY_POST_PATTERN =
       Pattern.compile("(.*)((EUR|GBP|USD)\$)", Pattern.CASE_INSENSITIVE)
-  final static Pattern AMOUNT_PATTERN =
-      Pattern.compile("[\\d]+([\\.,][\\d]{2})?")
+  final static Pattern AMOUNT_PATTERN_1 =
+      Pattern.compile("\\d{1,3}(\\.\\d{3})*(,\\d{1,2})?")
+  final static Pattern AMOUNT_PATTERN_2 =
+      Pattern.compile("\\d{1,3}(,\\d{3})*(\\.\\d{1,2})?")
 
 
   static String normalizeAmount(String str) {
@@ -31,9 +33,13 @@ class AmountNormalizer {
     //
     str = str.trim()
     // check amount format
-    matcher = AMOUNT_PATTERN.matcher(str)
+    matcher = AMOUNT_PATTERN_1.matcher(str)
     if (matcher.matches()) {
-      return str.replace(",", ".")
+      return str.replaceAll("\\.", "").replace(",", ".")
+    }
+    matcher = AMOUNT_PATTERN_2.matcher(str)
+    if (matcher.matches()) {
+      return str.replaceAll(",", "")
     }
     // else: by now, we don't accept any irregularities in numbers
     return ""

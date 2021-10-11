@@ -101,10 +101,10 @@ class GokbExporter {
       if (record.isValid()){
         ObjectNode tipp
         if (type.equals(FileType.PACKAGE_WITH_TITLEDATA)){
-          tipp = JsonToolkit.getCombinedTitleTippJsonFromRecord(MappingsContainer.KB, record, FORMATTER, multiValueSeparator)
+          tipp = JsonToolkit.getCombinedTitleTippJsonFromRecord(MappingsContainer.KB, record, multiValueSeparator)
         }
         else{
-          tipp = JsonToolkit.getTippJsonFromRecord(MappingsContainer.KB, record, FORMATTER, multiValueSeparator)
+          tipp = JsonToolkit.getTippJsonFromRecord(MappingsContainer.KB, record, multiValueSeparator)
         }
         tipp = postProcessIssnIsbn(tipp, record, FileType.PACKAGE)
         if (type.equals(FileType.PACKAGE_WITH_TITLEDATA)){
@@ -183,7 +183,7 @@ class GokbExporter {
         enrichment.dataContainer.mappingsContainer)
     if (record != null && record.isValid()){
       record.deriveHistoryEventObjects(enrichment)
-      ObjectNode title = JsonToolkit.getTitleJsonFromRecord(MappingsContainer.KB, record, FORMATTER, multiValueSeparator)
+      ObjectNode title = JsonToolkit.getTitleJsonFromRecord(MappingsContainer.KB, record, multiValueSeparator)
       title = postProcessPublicationTitle(title, record)
       title = postProcessIssnIsbn(title, record, FileType.TITLES)
       title = removeEmptyFields(title)
@@ -281,7 +281,9 @@ class GokbExporter {
     log.debug("parsing package header finished")
 
     ObjectNode stats = new ObjectNode(NODE_FACTORY)
-    stats.put("kbartLines", enrichment.kbartReader?.lastItemReturned?.recordNumber?.toString())
+    if (enrichment.kbartReader?.lastItemReturned?.recordNumber){
+      stats.put("kbartLines", enrichment.kbartReader.lastItemReturned.recordNumber.toString())
+    }
     stats.put("recordsTotalCreated", enrichment.dataContainer.records?.size().toString())
     stats.put("recordsValid", String.valueOf(enrichment.greenRecords?.size() + enrichment.yellowRecords.size()))
     stats.put("recordsInvalid", String.valueOf(enrichment.redRecords?.size()))

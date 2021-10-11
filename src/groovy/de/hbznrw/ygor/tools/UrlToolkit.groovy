@@ -26,7 +26,10 @@ class UrlToolkit {
     HttpURLConnection huc = (HttpURLConnection) url.openConnection()
     huc.addRequestProperty("User-Agent", "Mozilla/5.0")
     huc.setRequestMethod("HEAD")                                        // don't request for body, speeds up
-    return HttpURLConnection.HTTP_OK.equals(huc.getResponseCode())
+    huc.setInstanceFollowRedirects(true)
+    int responseCode = huc.getResponseCode()
+    boolean exists = HttpURLConnection.HTTP_OK.equals(responseCode)
+    return exists
   }
 
 

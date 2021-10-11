@@ -14,6 +14,8 @@ import org.apache.commons.lang.StringUtils
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 
 import javax.servlet.http.HttpServletRequest
+import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 
 @Log4j
@@ -195,7 +197,7 @@ class EnrichmentController implements ControllersHelper{
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading URL. ",
         this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 3600)
-    def urlString = request.parameterMap["uploadUrlText"][0]
+    def urlString = request.parameterMap["uploadUrlText"][0].trim()
     // validate
     if (!(new org.apache.commons.validator.routines.UrlValidator()).isValid(urlString)){
       flash.error = message(code: 'error.kbart.noValidUrl').toString()
@@ -523,6 +525,10 @@ class EnrichmentController implements ControllersHelper{
     def result = [:]
     UploadJobFrame uploadJob = enrichmentService.getUploadJob(jobId)
     if (uploadJob == null){
+      Thread.sleep(1000)
+      uploadJob = enrichmentService.getUploadJob(jobId)
+    }
+    if (uploadJob == null){
       log.info("Received status request for uploadJob $jobId but there is no according job.")
       result.status = UploadThreadGokb.Status.ERROR.toString()
       result.message = "No job found for this id."
@@ -552,6 +558,10 @@ class EnrichmentController implements ControllersHelper{
     else{
       log.debug("UploadJob $jobId is still in frame status.")
       // uploadJob is instance of UploadJobFrame
+      if (uploadJob.timeCreated < LocalTime.now().minus(30, ChronoUnit.MINUTES)){
+        // remove job that is older than 30 minutes if nothing has happened yet
+        enrichmentService.UPLOAD_JOBS.remove(jobId)
+      }
       result.status = UploadThreadGokb.Status.PREPARATION.toString()
       render result as JSON
     }
