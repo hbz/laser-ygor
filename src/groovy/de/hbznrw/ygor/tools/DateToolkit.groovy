@@ -1,6 +1,7 @@
 package de.hbznrw.ygor.tools
 
 import de.hbznrw.ygor.normalizers.DateNormalizer
+import groovy.util.logging.Log4j
 import org.apache.commons.lang.StringUtils
 
 import java.text.SimpleDateFormat
@@ -9,8 +10,10 @@ import groovy.time.TimeCategory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
 
+@Log4j
 class DateToolkit {
 
   static String getDateMinusOneMinute(String date) {
@@ -57,7 +60,18 @@ class DateToolkit {
     String dateString = DateNormalizer.getDateString(value)
     LocalDate itemLastUpdate = null
     if (!StringUtils.isEmpty(dateString)) {
-      itemLastUpdate = LocalDate.parse(dateString)
+      try{
+        DateTimeFormatter df = new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .appendPattern("yyyy-MM-dd")
+            .appendPattern("dd-MM-yyyy")
+            .appendPattern("MM/dd/yyyy")
+            .appendPattern("dd.MM.yyyy")
+            .toFormatter()
+        itemLastUpdate = LocalDate.parse(value, df)
+      }
+      catch(DateTimeParseException dtpe){
+        log.info("Could not parse date string: ${dateString}")
+      }
     }
     itemLastUpdate
   }
