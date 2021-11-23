@@ -16,6 +16,9 @@ import java.time.format.DateTimeParseException
 @Log4j
 class DateToolkit {
 
+  static List<String> DATE_TIME_FORMATS = ["yyyy-MM-dd", "dd-MM-yyyy", "M[M]/d[d]/yyyy", "d[d].M[M].yyyy",
+                                           "yyyy", "yyyy-MM", "MM-yyyy", "yyyy-MM-dd'T'HH:mm:ss'Z'"]
+
   static String getDateMinusOneMinute(String date) {
     try {
       def sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S")
@@ -60,20 +63,19 @@ class DateToolkit {
     String dateString = DateNormalizer.getDateString(value)
     LocalDate itemLastUpdate = null
     if (!StringUtils.isEmpty(dateString)) {
-      try{
-        DateTimeFormatter df = new DateTimeFormatterBuilder().parseCaseInsensitive()
-            .appendPattern("yyyy-MM-dd")
-            .appendPattern("dd-MM-yyyy")
-            .appendPattern("MM/dd/yyyy")
-            .appendPattern("dd.MM.yyyy")
-            .toFormatter()
-        itemLastUpdate = LocalDate.parse(value, df)
-      }
-      catch(DateTimeParseException dtpe){
-        log.info("Could not parse date string: ${dateString}")
+      for (String dateTimeFormat in DATE_TIME_FORMATS){
+        try{
+          DateTimeFormatter df = new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern(dateTimeFormat).toFormatter()
+          itemLastUpdate = LocalDate.parse(value, df)
+        }
+        catch(DateTimeParseException dtpe){ /* log only on method exit */ }
+        if (itemLastUpdate != null){
+          return itemLastUpdate
+        }
       }
     }
-    itemLastUpdate
+    log.info("Could not parse date string: ${dateString}")
+    return null
   }
 
 }
