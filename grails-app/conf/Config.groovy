@@ -129,14 +129,14 @@ environments {
       autoUpdateJobsInterval = '30 30 4 ? * * *' // check for updates every day at 04:30:30am
     }
     gokbApi {
-      baseUri           = 'http://wekb.hbz-nrw.de/'
-      xrTitleUri        = 'http://wekb.hbz-nrw.de/integration/crossReferenceTitle'
-      xrPackageUri      = 'http://wekb.hbz-nrw.de/integration/crossReferencePackage'
-      xrSuggestUriStub  = 'http://wekb.hbz-nrw.de/api/suggest'
-      xrFindUriStub     = 'http://wekb.hbz-nrw.de/api/find'
-      xrJobInfo         = 'http://wekb.hbz-nrw.de/integration/getJobInfo'
-      packageInfo       = 'http://wekb.hbz-nrw.de/rest/packages/'
-      platformInfo      = 'http://wekb.hbz-nrw.de/rest/platforms/'
+      baseUri           = 'https://wekb.hbz-nrw.de/'
+      xrTitleUri        = 'https://wekb.hbz-nrw.de/integration/crossReferenceTitle'
+      xrPackageUri      = 'https://wekb.hbz-nrw.de/integration/crossReferencePackage'
+      xrSuggestUriStub  = 'https://wekb.hbz-nrw.de/api/suggest'
+      xrFindUriStub     = 'https://wekb.hbz-nrw.de/api/find'
+      xrJobInfo         = 'https://wekb.hbz-nrw.de/integration/getJobInfo'
+      packageInfo       = 'https://wekb.hbz-nrw.de/rest/packages/'
+      platformInfo      = 'https://wekb.hbz-nrw.de/rest/platforms/'
       namespaceCategory = 'ttl_prv'
       user              = ''
       pwd               = ''
