@@ -155,10 +155,7 @@ class UrlToolkit {
     while (noOfRedirects < maximumRedirects && connection.getResponseCode() in
         [HttpURLConnection.HTTP_MOVED_TEMP, HttpURLConnection.HTTP_MOVED_PERM, HttpURLConnection.HTTP_SEE_OTHER]) {
 
-      CookieManager manager = new CookieManager();
-      manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-      CookieHandler.setDefault(manager);
-
+     
       String newUrl = connection.getHeaderField("Location")
       connection = (HttpURLConnection) new URL(newUrl).openConnection()
       noOfRedirects++
