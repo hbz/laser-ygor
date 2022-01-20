@@ -129,14 +129,14 @@ environments {
       autoUpdateJobsInterval = '30 30 4 ? * * *' // check for updates every day at 04:30:30am
     }
     gokbApi {
-      baseUri           = 'http://phaeton.hbz-nrw.de/gokb/'
-      xrTitleUri        = 'http://phaeton.hbz-nrw.de/gokb/integration/crossReferenceTitle'
-      xrPackageUri      = 'http://phaeton.hbz-nrw.de/gokb/integration/crossReferencePackage'
-      xrSuggestUriStub  = 'http://phaeton.hbz-nrw.de/gokb/api/suggest'
-      xrFindUriStub     = 'http://phaeton.hbz-nrw.de/gokb/api/find'
-      xrJobInfo         = 'http://phaeton.hbz-nrw.de/gokb/integration/getJobInfo'
-      packageInfo       = 'http://phaeton.hbz-nrw.de/gokb/rest/packages/'
-      platformInfo      = 'http://phaeton.hbz-nrw.de/gokb/rest/platforms/'
+      baseUri           = 'https://wekb.hbz-nrw.de/'
+      xrTitleUri        = 'https://wekb.hbz-nrw.de/integration/crossReferenceTitle'
+      xrPackageUri      = 'https://wekb.hbz-nrw.de/integration/crossReferencePackage'
+      xrSuggestUriStub  = 'https://wekb.hbz-nrw.de/api/suggest'
+      xrFindUriStub     = 'https://wekb.hbz-nrw.de/api/find'
+      xrJobInfo         = 'https://wekb.hbz-nrw.de/integration/getJobInfo'
+      packageInfo       = 'https://wekb.hbz-nrw.de/rest/packages/'
+      platformInfo      = 'https://wekb.hbz-nrw.de/rest/platforms/'
       namespaceCategory = 'ttl_prv'
       user              = ''
       pwd               = ''
