@@ -308,7 +308,7 @@ class Enrichment{
     if (dataContainer.pkgHeader?.nominalPlatform != null){
       result.append("\"nominalPlatform\":{")
         result.append("\"name\":\"").append(dataContainer.pkgHeader?.nominalPlatform.name).append("\",")
-        result.append("\"url\":\"").append(dataContainer.pkgHeader?.nominalPlatform.url).append("\"")
+        result.append("\"url\":\"").append(dataContainer.pkgHeader?.nominalPlatform.url).append("\",")
         result.append("\"oid\":\"").append(dataContainer.pkgHeader?.nominalPlatform.oid).append("\"")
       result.append("},")
     }

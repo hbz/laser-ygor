@@ -154,6 +154,8 @@ class UrlToolkit {
     int noOfRedirects = 0
     while (noOfRedirects < maximumRedirects && connection.getResponseCode() in
         [HttpURLConnection.HTTP_MOVED_TEMP, HttpURLConnection.HTTP_MOVED_PERM, HttpURLConnection.HTTP_SEE_OTHER]) {
+
+     
       String newUrl = connection.getHeaderField("Location")
       connection = (HttpURLConnection) new URL(newUrl).openConnection()
       noOfRedirects++
