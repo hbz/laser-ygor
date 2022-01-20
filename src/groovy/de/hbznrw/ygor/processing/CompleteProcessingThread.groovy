@@ -95,7 +95,6 @@ class CompleteProcessingThread extends Thread {
           catch (Exception e) {
             e.printStackTrace()
             log.error("Could not build enrichment for package ${pkg.id} with uuid ${pkg.uuid}")
-            uploadJobFrame
             continue
           }
           enrichment.originPathName = kbartReader.fileName

@@ -174,7 +174,7 @@ class EnrichmentController implements ControllersHelper{
     catch (Exception ype) {
       flash.info = null
       flash.warning = null
-      flash.error = ype.getMessage()
+      flash.error = ype.getMessage().concat(": " + file.originalFilename)
       Enrichment enrichment = getCurrentEnrichment()
       render(
           view: 'process',
