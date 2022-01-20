@@ -101,7 +101,7 @@ class KbartReader {
     }
     if (!StringUtils.isEmpty(dateString)){
       try{
-        return DateNormalizer.YYYY_MM_DD.parse(dateString)
+        return new SimpleDateFormat("yyyy-MM-dd").parse(dateString)
       }
       catch(ParseException pe){
         return null

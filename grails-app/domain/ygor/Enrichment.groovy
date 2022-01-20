@@ -6,7 +6,6 @@ import de.hbznrw.ygor.export.GokbExporter
 import de.hbznrw.ygor.export.structure.PackageHeader
 import de.hbznrw.ygor.export.structure.PackageHeaderNominalPlatform
 import de.hbznrw.ygor.export.structure.PackageHeaderNominalProvider
-import de.hbznrw.ygor.normalizers.DateNormalizer
 import de.hbznrw.ygor.processing.MultipleProcessingThread
 import de.hbznrw.ygor.processing.YgorFeedback
 import de.hbznrw.ygor.readers.KbartReader
@@ -26,6 +25,7 @@ import ygor.identifier.AbstractIdentifier
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -162,7 +162,7 @@ class Enrichment{
     ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.PREPARATION
     this.kbartReader = kbartReader
     if (kbartReader.fileNameDate){
-      this.fileNameDate = DateNormalizer.YYYY_MM_DD.format(kbartReader.fileNameDate)
+      this.fileNameDate = new SimpleDateFormat("yyyy-MM-dd").format(kbartReader.fileNameDate)
     }
     resultName = FileToolkit.getDateTimePrefixedFileName(originName)
     ygorVersion = options.get('ygorVersion')

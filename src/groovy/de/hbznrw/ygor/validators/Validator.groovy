@@ -4,11 +4,13 @@ import de.hbznrw.ygor.enums.*
 import de.hbznrw.ygor.export.structure.TitleStruct
 import de.hbznrw.ygor.normalizers.DateNormalizer
 import de.hbznrw.ygor.readers.EzbReader
+import de.hbznrw.ygor.tools.DateToolkit
 import org.apache.commons.lang.StringUtils
 import org.apache.commons.validator.routines.UrlValidator
 import ygor.identifier.AbstractIdentifier
 
 import java.sql.Timestamp
+import java.time.LocalDate
 
 // checks if given value meets the requirements
 
@@ -233,6 +235,11 @@ class Validator {
     }
     // accept "YYYY" or "YYYY-MM-DD" or "YYYY/MM/DD"
     if (str.matches("[\\d]{4}([-/][\\d]{2}){0,2}")){
+      return Status.VALID
+    }
+    // accept some more common date formats
+    LocalDate localDate = DateToolkit.getAsLocalDate(str)
+    if (localDate != null){
       return Status.VALID
     }
     // also accept some time spans, like "YYYY-YYYY"
