@@ -103,8 +103,8 @@ class StatisticController implements ControllersHelper{
       default:
         records = null
     }
-    def result = [recordsTotal: records.size(), recordsFiltered: records.size(), draw: draw, displayStart: start, data: []]
-
+    def result = [draw: draw, displayStart: start, data: []]
+    result.recordsFiltered = result.recordsTotal = 0
     if (records != null){
       int from = start
       int to = from + size
@@ -114,6 +114,7 @@ class StatisticController implements ControllersHelper{
         if (searchFilter && (!record.key || !(record.key.toLowerCase().contains(searchFilter)))){
           continue
         }
+        result.recordsFiltered += 1
         if (i >= from && i < to){
           def cols = record.value
           if (record.value.size() > 4){
@@ -146,6 +147,7 @@ class StatisticController implements ControllersHelper{
         i++
       }
     }
+    result.recordsTotal = result.recordsFiltered
     result
   }
 
