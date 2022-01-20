@@ -18,6 +18,9 @@ import ygor.identifier.OnlineIdentifier
 import ygor.identifier.PrintIdentifier
 import ygor.identifier.ZdbIdentifier
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 @Log4j
 class StatisticController implements ControllersHelper{
 
@@ -109,9 +112,15 @@ class StatisticController implements ControllersHelper{
       int from = start
       int to = from + size
       int i = 0
+      Pattern pattern = Pattern.compile(">(.*?)<")
       for (def record in records){
         // log.debug("Processing value ${value}")
-        if (searchFilter && (!record.key || !(record.key.toLowerCase().contains(searchFilter)))){
+        Matcher matcher = pattern.matcher(record.value[0])
+        String recordTitle = null
+        if (matcher.find()) {
+          recordTitle = matcher.group(1)
+        }
+        if (searchFilter && (!recordTitle || !(recordTitle.toLowerCase().contains(searchFilter)))){
           continue
         }
         result.recordsFiltered += 1
