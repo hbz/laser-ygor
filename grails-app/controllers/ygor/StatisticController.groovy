@@ -18,6 +18,9 @@ import ygor.identifier.OnlineIdentifier
 import ygor.identifier.PrintIdentifier
 import ygor.identifier.ZdbIdentifier
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 @Log4j
 class StatisticController implements ControllersHelper{
 
@@ -63,9 +66,9 @@ class StatisticController implements ControllersHelper{
             ygorVersion     : enrichment.ygorVersion,
             date            : enrichment.lastProcessingDate,
             filename        : enrichment.originName,
-            greenRecords    : recordsPrivate(resultHash, RecordFlag.Colour.GREEN.toString(), 0, 10, 1),
-            yellowRecords   : recordsPrivate(resultHash, RecordFlag.Colour.YELLOW.toString(), 0, 10, 1),
-            redRecords      : recordsPrivate(resultHash, RecordFlag.Colour.RED.toString(), 0, 10, 1),
+            greenRecords    : recordsPrivate(resultHash, RecordFlag.Colour.GREEN.toString(), null, 0, 10, 1),
+            yellowRecords   : recordsPrivate(resultHash, RecordFlag.Colour.YELLOW.toString(), null, 0, 10, 1),
+            redRecords      : recordsPrivate(resultHash, RecordFlag.Colour.RED.toString(), null, 0, 10, 1),
             status          : enrichment.status,
             packageName     : enrichment.packageName,
             runningJobIds   : runningUploadJobs.keySet(),
@@ -77,11 +80,17 @@ class StatisticController implements ControllersHelper{
   }
 
   def records(){
-    render recordsPrivate(params.resultHash, params.colour, params.int('start'), params.int('length'), params.int('draw')) as JSON
+    render recordsPrivate(
+            params.resultHash, params.colour, params."search[value]",
+            params.int('start'), params.int('length'), params.int('draw')) as JSON
   }
 
 
-  synchronized private def recordsPrivate(String resultHash, String colour, int start, int size, int draw){
+  synchronized private def recordsPrivate(
+          String resultHash, String colour, String searchFilter, int start, int size, int draw){
+    if (!StringUtils.isEmpty(searchFilter)){
+      searchFilter = searchFilter.toLowerCase()
+    }
     Map records
     Enrichment enrichment = getCurrentEnrichment()
     switch (colour){
@@ -97,20 +106,30 @@ class StatisticController implements ControllersHelper{
       default:
         records = null
     }
-    def result = [recordsTotal: records.size(), recordsFiltered: records.size(), draw: draw, displayStart: start, data: []]
-
+    def result = [draw: draw, displayStart: start, data: []]
+    result.recordsFiltered = result.recordsTotal = 0
     if (records != null){
       int from = start
       int to = from + size
       int i = 0
-      records.each { key, value ->
+      Pattern pattern = Pattern.compile(">(.*?)<")
+      for (def record in records){
         // log.debug("Processing value ${value}")
+        Matcher matcher = pattern.matcher(record.value[0])
+        String recordTitle = null
+        if (matcher.find()) {
+          recordTitle = matcher.group(1)
+        }
+        if (searchFilter && (!recordTitle || !(recordTitle.toLowerCase().contains(searchFilter)))){
+          continue
+        }
+        result.recordsFiltered += 1
         if (i >= from && i < to){
-          def cols = value
-          if (value.size() > 4){
-            String title = StringUtils.isEmpty(value.get(0)) ? message(code: 'missing') : value.get(0)
-            String uid = value.get(4)
-            if (!(StringUtils.isEmpty(uid)) && !value[0].contains('<')){
+          def cols = record.value
+          if (record.value.size() > 4){
+            String title = StringUtils.isEmpty(record.value.get(0)) ? message(code: 'missing') : record.value.get(0)
+            String uid = record.value.get(4)
+            if (!(StringUtils.isEmpty(uid)) && !record.value[0].contains('<')){
               StringWriter sw = new StringWriter()
               sw.write('<a href="/ygor/statistic/edit/')
               sw.write(uid)
@@ -122,8 +141,8 @@ class StatisticController implements ControllersHelper{
               cols[0] = sw.toString()
             }
           }
-          if (value.size() > 1 && !value[1].contains('<')){
-            String linkValue = value.get(1)
+          if (record.value.size() > 1 && !record.value[1].contains('<')){
+            String linkValue = record.value.get(1)
             if (!(StringUtils.isEmpty(linkValue))){
               StringWriter sw = new StringWriter()
               sw.write('<a class="link-icon" href="')
@@ -137,6 +156,7 @@ class StatisticController implements ControllersHelper{
         i++
       }
     }
+    result.recordsTotal = result.recordsFiltered
     result
   }
 
@@ -150,9 +170,9 @@ class StatisticController implements ControllersHelper{
         model: [
             resultHash      : resultHash,
             currentView     : 'statistic',
-            greenRecords    : recordsPrivate(resultHash, RecordFlag.Colour.GREEN.toString(), 0, 10, 1),
-            yellowRecords   : recordsPrivate(resultHash, RecordFlag.Colour.YELLOW.toString(), 0, 10, 1),
-            redRecords      : recordsPrivate(resultHash, RecordFlag.Colour.RED.toString(), 0, 10, 1),
+            greenRecords    : recordsPrivate(resultHash, RecordFlag.Colour.GREEN.toString(), null, 0, 10, 1),
+            yellowRecords   : recordsPrivate(resultHash, RecordFlag.Colour.YELLOW.toString(), null, 0, 10, 1),
+            redRecords      : recordsPrivate(resultHash, RecordFlag.Colour.RED.toString(), null, 0, 10, 1),
             ygorVersion     : enrichment.ygorVersion,
             date            : enrichment.lastProcessingDate,
             filename        : enrichment.originName,
@@ -205,9 +225,9 @@ class StatisticController implements ControllersHelper{
         model: [
             resultHash      : resultHash,
             currentView     : 'statistic',
-            greenRecords    : recordsPrivate(resultHash, RecordFlag.Colour.GREEN.toString(), 0, 10, 1),
-            yellowRecords   : recordsPrivate(resultHash, RecordFlag.Colour.YELLOW.toString(), 0, 10, 1),
-            redRecords      : recordsPrivate(resultHash, RecordFlag.Colour.RED.toString(), 0, 10, 1),
+            greenRecords    : recordsPrivate(resultHash, RecordFlag.Colour.GREEN.toString(), null, 0, 10, 1),
+            yellowRecords   : recordsPrivate(resultHash, RecordFlag.Colour.YELLOW.toString(), null, 0, 10, 1),
+            redRecords      : recordsPrivate(resultHash, RecordFlag.Colour.RED.toString(), null, 0, 10, 1),
             ygorVersion     : enrichment.ygorVersion,
             date            : enrichment.lastProcessingDate,
             filename        : enrichment.originName,
@@ -453,9 +473,9 @@ class StatisticController implements ControllersHelper{
             ygorVersion     : enrichment.ygorVersion,
             date            : enrichment.lastProcessingDate,
             filename        : enrichment.originName,
-            greenRecords    : recordsPrivate(enrichment.resultHash, RecordFlag.Colour.GREEN.toString(), 0, 10, 1),
-            yellowRecords   : recordsPrivate(enrichment.resultHash, RecordFlag.Colour.YELLOW.toString(), 0, 10, 1),
-            redRecords      : recordsPrivate(enrichment.resultHash, RecordFlag.Colour.RED.toString(), 0, 10, 1),
+            greenRecords    : recordsPrivate(enrichment.resultHash, RecordFlag.Colour.GREEN.toString(), null, 0, 10, 1),
+            yellowRecords   : recordsPrivate(enrichment.resultHash, RecordFlag.Colour.YELLOW.toString(), null, 0, 10, 1),
+            redRecords      : recordsPrivate(enrichment.resultHash, RecordFlag.Colour.RED.toString(), null, 0, 10, 1),
             status          : enrichment.status.toString(),
             packageName     : enrichment.packageName,
             dataType        : fileType,
