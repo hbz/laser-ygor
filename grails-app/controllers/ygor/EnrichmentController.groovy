@@ -8,6 +8,7 @@ import de.hbznrw.ygor.readers.KbartReader
 import grails.converters.JSON
 import grails.util.Holders
 import groovy.util.logging.Log4j
+import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.collections.MapUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
@@ -42,6 +43,9 @@ class EnrichmentController implements ControllersHelper{
     namespace_doi_list  << [id: 'doi', text: 'doi']
     Enrichment en = getCurrentEnrichment()
     setErrorStatus(en)
+    if (en?.ygorFeedback){
+      fillFlash(en.ygorFeedback)
+    }
     render(
         view: 'process',
         params: [
@@ -116,13 +120,11 @@ class EnrichmentController implements ControllersHelper{
     }
     String encoding = enrichmentService.getEncoding(file.getInputStream(), null)
     if (encoding && encoding != "UTF-8"){
-      flash.info = null
-      flash.warning = null
       String invalidEncoding = message(code: 'error.kbart.invalidEncoding').toString()
       String messageFooter = message(code: 'error.kbart.messageFooter').toString()
-      flash.error = invalidEncoding.concat("<br>").concat(messageFooter)
       ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
       ygorFeedback.statusDescription += flash.error
+      fillFlash(ygorFeedback)
       redirect(
           action: 'process',
           model: [
@@ -159,6 +161,7 @@ class EnrichmentController implements ControllersHelper{
       enrichment.status = Enrichment.ProcessingState.PREPARE_1
       kbartReader = new KbartReader(enrichment.transferredFile, enrichment.originName)
       kbartReader.checkHeader()
+      fillFlash(enrichment.ygorFeedback)
       redirect(
           action: 'process',
           params: [
@@ -173,22 +176,9 @@ class EnrichmentController implements ControllersHelper{
       )
     }
     catch (Exception ype) {
-      flash.info = null
-      flash.warning = null
-      flash.error = ype.getMessage().concat(": " + file.originalFilename)
+      fillFlash(ype)
       Enrichment enrichment = getCurrentEnrichment()
-      render(
-          view: 'process',
-          params: [
-              resultHash: request.parameterMap.resultHash,
-              originHash: enrichment.originHash
-          ],
-          model: [
-              enrichment : enrichment,
-              currentView: 'process',
-              ygorFeedback : ygorFeedback
-          ]
-      )
+      renderOnError(enrichment, ygorFeedback)
       return
     }
   }
@@ -228,10 +218,7 @@ class EnrichmentController implements ControllersHelper{
       kbartReader.checkHeader()
     }
     catch (Exception e) {
-      flash.info = null
-      flash.warning = null
-      flash.error = e.getMessage()
-
+      fillFlash(e)
       render(
           view: 'process',
           params: [
@@ -253,6 +240,7 @@ class EnrichmentController implements ControllersHelper{
     }
     enrichment.addFileAndFormat()
     enrichment.status = Enrichment.ProcessingState.PREPARE_1
+    fillFlash(enrichment.ygorFeedback)
     redirect(
         action: 'process',
         params: [
@@ -635,6 +623,7 @@ class EnrichmentController implements ControllersHelper{
       }
       if (en.status != Enrichment.ProcessingState.FINISHED){
         setErrorStatus(en)
+        fillFlash(en.ygorFeedback)
         redirect(
             action: 'process',
             params: [
@@ -649,6 +638,7 @@ class EnrichmentController implements ControllersHelper{
         )
       }
       else{
+        fillFlash(en.ygorFeedback)
         redirect(
             controller: 'Statistic',
             action: 'show',
@@ -668,6 +658,7 @@ class EnrichmentController implements ControllersHelper{
       ygorFeedback.exceptions << e
       ygorFeedback.statusDescription += "Exception occurred during processFile."
       setErrorStatus(en)
+      fillFlash(en.ygorFeedback)
       redirect(action: 'process')
     }
   }
@@ -788,4 +779,48 @@ class EnrichmentController implements ControllersHelper{
     render result as JSON
   }
 
+
+  private Object renderOnError(Enrichment enrichment, YgorFeedback ygorFeedback) {
+    render(
+        view: 'process',
+        params: [
+            resultHash: request.parameterMap.resultHash,
+            originHash: enrichment.originHash
+        ],
+        model: [
+            enrichment  : enrichment,
+            currentView : 'process',
+            ygorFeedback: ygorFeedback
+        ]
+    )
+  }
+
+
+  private void fillFlash(Exception e){
+    flash.info = null
+    flash.warning = null
+    flash.error = ype.getMessage().concat(": " + file.originalFilename)
+    if (!CollectionUtils.isEmpty(ygorFeedback.exceptions)){
+      flash.error += " Observed exceptions: ${ygorFeedback.exceptions.toString()}."
+    }
+    if (!CollectionUtils.isEmpty(ygorFeedback.errors)){
+      flash.error += " Observed errors: ${ygorFeedback.errors.toString()}."
+    }
+  }
+
+
+  private void fillFlash(YgorFeedback ygorFeedback){
+    flash.info = null
+    flash.warning = null
+    flash.error = null
+    if (ygorFeedback != null){
+      if (!CollectionUtils.isEmpty(ygorFeedback.exceptions)){
+        flash.error = "Observed exceptions: ${ygorFeedback.exceptions.toString()}. "
+      }
+      if (!CollectionUtils.isEmpty(ygorFeedback.errors)){
+        if (!flash.error){ flash.error = "" }
+        flash.error += "Observed errors: ${ygorFeedback.errors.toString()}."
+      }
+    }
+  }
 }
