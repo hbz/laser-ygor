@@ -528,21 +528,21 @@ class Enrichment{
   }
 
 
-  synchronized void classifyRecord(Record record){
-    record.setDisplayTitle()
-    String key = record.displayTitle.concat(record.uid)
+  synchronized void classifyRecord(Record aRecord){
+    aRecord.setDisplayTitle()
+    String key = aRecord.displayTitle.concat(aRecord.uid)
     List<String> values = [
-        StringUtils.isEmpty(record.displayTitle) ? "" : (
-            record.displayTitle.size() > 100 ? record.displayTitle.substring(0,100).concat("...") : record.displayTitle),
-        valOrEmpty(record.zdbIntegrationUrl),
-        valOrEmpty(record.zdbId),
-        valOrEmpty(record.onlineIdentifier),
-        valOrEmpty(record.uid)
+        StringUtils.isEmpty(aRecord.displayTitle) ? "" : (
+                aRecord.displayTitle.size() > 100 ? aRecord.displayTitle.substring(0,100).concat("...") : aRecord.displayTitle),
+        valOrEmpty(aRecord.zdbIntegrationUrl),
+        valOrEmpty(aRecord.zdbId),
+        valOrEmpty(aRecord.onlineIdentifier),
+        valOrEmpty(aRecord.uid)
     ]
-    if (record.isValid()){
-      if (needsPreciseClassification && record.multiFields.get("titleUrl").isCorrect(record.publicationType) &&
-          record.duplicates.isEmpty() && (!record.publicationType.equals("serial") || record.zdbIntegrationUrl != null)
-          && !record.hasFlagOfColour(RecordFlag.Colour.YELLOW)){
+    if (aRecord.isValid()){
+      if (needsPreciseClassification && aRecord.multiFields.get("titleUrl").isCorrect(aRecord.publicationType)
+          && aRecord.duplicates.isEmpty() && (!aRecord.publicationType.equals("serial") || aRecord.zdbIntegrationUrl != null)
+          && !aRecord.hasFlagOfColour(RecordFlag.Colour.YELLOW)){
         greenRecords.put(key, values)
         yellowRecords.remove(key)
         redRecords.remove(key)
