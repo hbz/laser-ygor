@@ -38,10 +38,10 @@ grails.project.dependency.resolution = {
     //grailsPlugins()
     grailsHome()
     mavenLocal()
-    grailsCentral()
+    //grailsCentral()
     mavenCentral()
 
-    mavenRepo "https://repo.grails.org/ui/native/plugins"
+    mavenRepo url: 'https://repo.grails.org/artifactory/plugins', name: 'grailsCentral'
   }
 
   dependencies {
