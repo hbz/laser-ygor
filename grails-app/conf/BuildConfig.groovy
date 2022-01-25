@@ -41,7 +41,7 @@ grails.project.dependency.resolution = {
     //grailsCentral()
     mavenCentral()
 
-    mavenRepo url: 'http://repo.grails.org/artifactory/plugins', name: 'grailsCentral'
+    mavenRepo url: 'https://repo.grails.org/artifactory/plugins', name: 'grailsCentral'
   }
 
   dependencies {
