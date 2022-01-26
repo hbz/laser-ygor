@@ -80,7 +80,7 @@ class EnrichmentService{
     if (pm['pkgIdNamespace'] && "" != pm['pkgIdNamespace'][0].trim()){
       enrichment.dataContainer.pkgIdNamespace = (pm['pkgIdNamespace'][0])
     }
-    if (pm['pkgTitleId']){
+    if (pm['pkgTitleId'] && "" != pm['pkgTitleId'][0].trim()){
       enrichment.dataContainer.info.namespace_title_id = pm['pkgTitleId'][0]
     }
   }
