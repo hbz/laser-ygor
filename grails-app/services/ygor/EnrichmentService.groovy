@@ -316,7 +316,7 @@ class EnrichmentService{
   }
 
 
-  static void removeErrorEnrichments(){
+  void removeErrorEnrichments(){
     def enrichments = getSessionEnrichments()
     Iterator it = enrichments.iterator()
     while (it.hasNext()){

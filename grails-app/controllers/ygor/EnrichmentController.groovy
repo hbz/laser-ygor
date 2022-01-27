@@ -42,9 +42,13 @@ class EnrichmentController implements ControllersHelper{
     namespace_doi_list.addAll(namespace_list)
     namespace_doi_list  << [id: 'doi', text: 'doi']
     Enrichment en = getCurrentEnrichment()
-    setErrorStatus(en)
     if (en?.ygorFeedback){
       fillFlash(en.ygorFeedback)
+      if (en.status == Enrichment.ProcessingState.ERROR){
+        enrichmentService.removeErrorEnrichments()
+        en = new Enrichment()
+        enrichmentService.addSessionEnrichment(en)
+      }
     }
     render(
         view: 'process',
@@ -97,7 +101,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadFile = {
-    EnrichmentService.removeErrorEnrichments()
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading file. ", this.getClass(), null,
         null, null, null)
     SessionService.setSessionDuration(request, 3600)
@@ -176,7 +180,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadUrl = {
-    EnrichmentService.removeErrorEnrichments()
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading URL. ",
         this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 3600)
@@ -259,7 +263,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadRawFile = {
-    EnrichmentService.removeErrorEnrichments()
+    enrichmentService.removeErrorEnrichments()
     SessionService.setSessionDuration(request, 3600)
     def file = request.getFile('uploadRawFile')
     Enrichment enrichment = Enrichment.fromZipFile(file, enrichmentService.sessionFolder.parentFile.absolutePath)
@@ -293,7 +297,7 @@ class EnrichmentController implements ControllersHelper{
     if (request.session.lastUpdate != null){
       request.session.lastUpdate.parameterMap = request.parameterMap
     }
-    setErrorStatus(enrichment)
+    fillFlash(enrichment.ygorFeedback)
     redirect(
         action: 'process',
         params: [
@@ -309,7 +313,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processGokbPackage(){
-    EnrichmentService.removeErrorEnrichments()
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing Knowledge Base package. ", this.getClass(), null,
         null, null, null)
     SessionService.setSessionDuration(request, 72000)
@@ -391,7 +395,7 @@ class EnrichmentController implements ControllersHelper{
    * Content-Disposition: form-data; name="uploadFile"; filename="yourKBartTestFile.tsv"
    */
   def processCompleteWithToken(){
-    EnrichmentService.removeErrorEnrichments()
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
         "Complete processing with token authentication. ", this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 72000)
@@ -613,7 +617,6 @@ class EnrichmentController implements ControllersHelper{
         }
       }
       if (en.status != Enrichment.ProcessingState.FINISHED){
-        setErrorStatus(en)
         fillFlash(en.ygorFeedback)
         redirect(
             action: 'process',
@@ -655,14 +658,6 @@ class EnrichmentController implements ControllersHelper{
   }
 
 
-  private void setErrorStatus(Enrichment en){
-    if (en.apiMessage != null){
-      en.status = Enrichment.ProcessingState.ERROR
-      flash.error = en.apiMessage
-    }
-  }
-
-
   def stopProcessingFile = {
     SessionService.setSessionDuration(request, 3600)
     getCurrentEnrichment().stop()
@@ -699,18 +694,26 @@ class EnrichmentController implements ControllersHelper{
 
   Enrichment getCurrentEnrichment(){
     Enrichment en = getCurrentEnrichmentStatic(enrichmentService, request)
-    log.debug("getCurrentEnrichment() : ${en.originHash}")
+    log.debug("getCurrentEnrichment() : ${en?.originHash}")
     return en
   }
 
 
   static Enrichment getCurrentEnrichmentStatic(EnrichmentService enrichmentService, HttpServletRequest request){
+    Map enrichments = enrichmentService.getSessionEnrichments()
     Enrichment result = null
-    if (!request.parameterMap['resultHash'] || !(String) request.parameterMap['resultHash'][0]){
+    if (enrichments.size() == 1 && enrichments.values()[0] != null &&
+        (!request.parameterMap['resultHash'] || !(String)request.parameterMap['resultHash'][0]
+          || (String)request.parameterMap['resultHash'][0] == enrichments.values()[0].resultHash)){
+      // if there is 1 enrichment, this is it
+      result = enrichments.values()[0]
+    }
+    else if (!request.parameterMap['resultHash'] || !(String) request.parameterMap['resultHash'][0]){
+      // if we don't know which enrichment hash we are looking for, return a new enrichment
       result = new Enrichment()
     }
     def hash
-    Map enrichments = enrichmentService.getSessionEnrichments()
+    // find the hash in the map of enrichments
     if (null == result){
       hash = (String) request.parameterMap['resultHash'][0]
       result = enrichments[hash.toString()]
@@ -804,14 +807,13 @@ class EnrichmentController implements ControllersHelper{
   private void fillFlash(YgorFeedback ygorFeedback){
     flash.info = null
     flash.warning = null
-    flash.error = null
+    flash.error = flash.error ?: ""
     if (ygorFeedback != null){
       if (!CollectionUtils.isEmpty(ygorFeedback.exceptions)){
-        flash.error = "Observed exceptions: ${ygorFeedback.exceptions.toString()}. "
+        flash.error += "Observed exceptions: " + ygorFeedback.exceptions.toString() + ". "
       }
       if (!CollectionUtils.isEmpty(ygorFeedback.errors.keySet())){
-        flash.error = flash.error ?: ""
-        flash.error += "Observed errors: ${ygorFeedback.errors.toString()}."
+        flash.error += "Observed errors: " + ygorFeedback.errors.toString() + ". "
       }
     }
   }
