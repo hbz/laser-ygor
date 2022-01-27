@@ -43,6 +43,7 @@ class KbartReader {
   char delimiterChar
 
   static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
+  static String INCORRECT_NUMBER_OF_COLUMNS = VALIDATION_TAG_LIB.message(code: 'error.kbart.incorrectNumberOfColumns').toString()
 
   static MANDATORY_KBART_KEYS = [
       'title_url',
@@ -182,7 +183,7 @@ class KbartReader {
       }
     }
     catch (ArrayIndexOutOfBoundsException aioobe){
-      YgorProcessingException ype = new YgorProcessingException("Format error: could not process file due to too many columns in a row.")
+      YgorProcessingException ype = new YgorProcessingException(INCORRECT_NUMBER_OF_COLUMNS)
       ype.setStackTrace(aioobe.getStackTrace())
       throw ype
     }

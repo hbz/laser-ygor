@@ -810,10 +810,10 @@ class EnrichmentController implements ControllersHelper{
     flash.error = flash.error ?: ""
     if (ygorFeedback != null){
       if (!CollectionUtils.isEmpty(ygorFeedback.exceptions)){
-        flash.error += "Observed exceptions: " + ygorFeedback.exceptions.toString() + ". "
+        flash.error += ygorFeedback.exceptions.toString() + ". "
       }
       if (!CollectionUtils.isEmpty(ygorFeedback.errors.keySet())){
-        flash.error += "Observed errors: " + ygorFeedback.errors.toString() + ". "
+        flash.error += ygorFeedback.errors.toString() + ". "
       }
     }
   }
