@@ -104,6 +104,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadFile = {
+    EnrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading file. ", this.getClass(), null,
         null, null, null)
     SessionService.setSessionDuration(request, 3600)
@@ -194,6 +195,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadUrl = {
+    EnrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading URL. ",
         this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 3600)
@@ -277,6 +279,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadRawFile = {
+    EnrichmentService.removeErrorEnrichments()
     SessionService.setSessionDuration(request, 3600)
     def file = request.getFile('uploadRawFile')
     Enrichment enrichment = Enrichment.fromZipFile(file, enrichmentService.sessionFolder.parentFile.absolutePath)
@@ -326,6 +329,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processGokbPackage(){
+    EnrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing Knowledge Base package. ", this.getClass(), null,
         null, null, null)
     SessionService.setSessionDuration(request, 72000)
@@ -407,6 +411,7 @@ class EnrichmentController implements ControllersHelper{
    * Content-Disposition: form-data; name="uploadFile"; filename="yourKBartTestFile.tsv"
    */
   def processCompleteWithToken(){
+    EnrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
         "Complete processing with token authentication. ", this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 72000)
