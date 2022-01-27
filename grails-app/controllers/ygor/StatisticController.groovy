@@ -558,7 +558,9 @@ class StatisticController implements ControllersHelper{
 
 
   Enrichment getCurrentEnrichment(){
-    return EnrichmentController.getCurrentEnrichmentStatic(enrichmentService, request)
+    Enrichment en = EnrichmentController.getCurrentEnrichmentStatic(enrichmentService, request)
+    log.debug("getCurrentEnrichment() : ${en.originHash}")
+    return en
   }
 
 

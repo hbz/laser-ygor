@@ -167,7 +167,7 @@ class EnrichmentController implements ControllersHelper{
       )
     }
     catch (Exception ype) {
-      fillFlash(ype)
+      fillFlash(null, null, ype.getMessage())
       Enrichment enrichment = getCurrentEnrichment()
       renderOnError(enrichment, ygorFeedback)
       return
@@ -210,7 +210,7 @@ class EnrichmentController implements ControllersHelper{
       kbartReader.checkHeader()
     }
     catch (Exception e) {
-      fillFlash(e)
+      fillFlash(null, null, e.getMessage())
       render(
           view: 'process',
           params: [
@@ -698,20 +698,27 @@ class EnrichmentController implements ControllersHelper{
 
 
   Enrichment getCurrentEnrichment(){
-    return getCurrentEnrichmentStatic(enrichmentService, request)
+    Enrichment en = getCurrentEnrichmentStatic(enrichmentService, request)
+    log.debug("getCurrentEnrichment() : ${en.originHash}")
+    return en
   }
 
 
   static Enrichment getCurrentEnrichmentStatic(EnrichmentService enrichmentService, HttpServletRequest request){
+    Enrichment result = null
     if (!request.parameterMap['resultHash'] || !(String) request.parameterMap['resultHash'][0]){
-      return new Enrichment()
+      result = new Enrichment()
     }
-    def hash = (String) request.parameterMap['resultHash'][0]
-    def enrichments = enrichmentService.getSessionEnrichments()
-    Enrichment result = enrichments[hash.toString()]
+    def hash
+    Map enrichments = enrichmentService.getSessionEnrichments()
+    if (null == result){
+      hash = (String) request.parameterMap['resultHash'][0]
+      result = enrichments[hash.toString()]
+    }
     if (null == result){
       result = enrichments.get("${hash.toString()}")
     }
+    // System.out.println("EnrichmentController.getCurrentEnrichmentStatic() : " + result?.originHash)
     result
   }
 
@@ -787,16 +794,10 @@ class EnrichmentController implements ControllersHelper{
   }
 
 
-  private void fillFlash(Exception e){
-    flash.info = null
-    flash.warning = null
-    flash.error = ype.getMessage().concat(": " + file.originalFilename)
-    if (!CollectionUtils.isEmpty(ygorFeedback.exceptions)){
-      flash.error += " Observed exceptions: ${ygorFeedback.exceptions.toString()}."
-    }
-    if (!CollectionUtils.isEmpty(ygorFeedback.errors)){
-      flash.error += " Observed errors: ${ygorFeedback.errors.toString()}."
-    }
+  private void fillFlash(String info, String warning, String error){
+    flash.info = info
+    flash.warning = warning
+    flash.error = error
   }
 
 
@@ -808,8 +809,8 @@ class EnrichmentController implements ControllersHelper{
       if (!CollectionUtils.isEmpty(ygorFeedback.exceptions)){
         flash.error = "Observed exceptions: ${ygorFeedback.exceptions.toString()}. "
       }
-      if (!CollectionUtils.isEmpty(ygorFeedback.errors)){
-        if (!flash.error){ flash.error = "" }
+      if (!CollectionUtils.isEmpty(ygorFeedback.errors.keySet())){
+        flash.error = flash.error ?: ""
         flash.error += "Observed errors: ${ygorFeedback.errors.toString()}."
       }
     }
