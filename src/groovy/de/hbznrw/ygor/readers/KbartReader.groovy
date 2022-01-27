@@ -1,6 +1,7 @@
 package de.hbznrw.ygor.readers
 
 import de.hbznrw.ygor.normalizers.DateNormalizer
+import de.hbznrw.ygor.processing.YgorProcessingException
 import de.hbznrw.ygor.tools.DateToolkit
 import groovy.util.logging.Log4j
 import org.apache.commons.csv.CSVFormat
@@ -167,16 +168,23 @@ class KbartReader {
 
 
   // NOTE: should have been an override of AbstractReader.readItemData(), but the parameters are too different
-  Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) {
+  Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) throws YgorProcessingException{
     int i = csvHeader.indexOf("last_changed")
-    while (csvRecords.hasNext()){
-      CSVRecord next = csvRecords.next()
-      LocalDate itemLastUpdate = i > -1 ? DateToolkit.getAsLocalDate(next.get(i)) : null
-      if (itemLastUpdate == null || lastPackageUpdate == null ||
-          ignoreLastChanged || !itemLastUpdate.isBefore(lastPackageUpdate)) {
-        Map<String, String> nextAsMap = returnItem(next)
-        if (nextAsMap != null) return nextAsMap
+    try{
+      while (csvRecords.hasNext()){
+        CSVRecord next = csvRecords.next()
+        LocalDate itemLastUpdate = i > -1 ? DateToolkit.getAsLocalDate(next.get(i)) : null
+        if (itemLastUpdate == null || lastPackageUpdate == null ||
+                ignoreLastChanged || !itemLastUpdate.isBefore(lastPackageUpdate)) {
+          Map<String, String> nextAsMap = returnItem(next)
+          if (nextAsMap != null) return nextAsMap
+        }
       }
+    }
+    catch (ArrayIndexOutOfBoundsException aioobe){
+      YgorProcessingException ype = new YgorProcessingException("Format error: could not process file due to too many columns in a row.")
+      ype.setStackTrace(aioobe.getStackTrace())
+      throw ype
     }
     return null
   }

@@ -113,7 +113,7 @@ class MultipleProcessingThread extends Thread {
     log.debug("Finished MultipleProcessingThread ${String.valueOf(getId())} run")
   }
 
-  synchronized private void enrich(){
+  synchronized private void enrich() throws Exception{
     for (String call : apiCalls){
       switch (call){
         case KbartReader.IDENTIFIER:
