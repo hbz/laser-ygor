@@ -64,17 +64,6 @@ class EnrichmentController implements ControllersHelper{
   }
 
 
-  def json = {
-    render(
-        view: 'json',
-        model: [
-            enrichment : getCurrentEnrichment(),
-            currentView: 'json'
-        ]
-    )
-  }
-
-
   def howto = {
     render(
         view: 'howto',
@@ -141,6 +130,7 @@ class EnrichmentController implements ControllersHelper{
       flash.error = message(code: 'error.kbart.noValidFile').toString().concat("<br>")
           .concat(message(code: 'error.kbart.messageFooter').toString())
       Enrichment enrichment = getCurrentEnrichment()
+      enrichment.ygorFeedback = ygorFeedback
       render(
           view: 'process',
           params: [
@@ -157,6 +147,7 @@ class EnrichmentController implements ControllersHelper{
     }
     try {
       Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
+      enrichment.ygorFeedback = ygorFeedback
       enrichment.addFileAndFormat()
       enrichment.status = Enrichment.ProcessingState.PREPARE_1
       kbartReader = new KbartReader(enrichment.transferredFile, enrichment.originName)
@@ -209,6 +200,7 @@ class EnrichmentController implements ControllersHelper{
     // load file from URL
     String kbartFileName = KbartFromUrlReader.urlStringToFileString(urlString)
     Enrichment enrichment = Enrichment.fromFilename(kbartFileName)
+    enrichment.ygorFeedback = ygorFeedback
     enrichment.addOnly = false
     enrichment.markDuplicates = true
     enrichment.processingOptions = null
@@ -584,10 +576,9 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processFile = {
-    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing file. ", this.getClass(), null,
-        null, null, null)
     SessionService.setSessionDuration(request, 72000)
     def en = getCurrentEnrichment()
+    YgorFeedback ygorFeedback = en.ygorFeedback
     ygorFeedback.processedData.put("enrichment", en.originName)
     try{
       def pmOptions = request.parameterMap['processOption']
@@ -633,7 +624,7 @@ class EnrichmentController implements ControllersHelper{
             model: [
                 enrichment : en,
                 currentView: 'process',
-                ygorFeedback : ygorFeedback
+                ygorFeedback : en.ygorFeedback
             ]
         )
       }
@@ -666,7 +657,7 @@ class EnrichmentController implements ControllersHelper{
 
   private void setErrorStatus(Enrichment en){
     if (en.apiMessage != null){
-      en.status == Enrichment.ProcessingState.ERROR
+      en.status = Enrichment.ProcessingState.ERROR
       flash.error = en.apiMessage
     }
   }
@@ -741,7 +732,7 @@ class EnrichmentController implements ControllersHelper{
 
   // get package title suggestions for typeahead
   def suggestPackageTitle = {
-    log.debug("Getting title suggestions..")
+    log.debug("Getting title suggestions for ${params.q} ..")
     def result = [:]
     boolean suggest = StringUtils.isEmpty(params.curatoryGroup) ? true : false
     def titles = gokbService.getTitleMap(params.q, suggest, params.curatoryGroup)
@@ -752,7 +743,7 @@ class EnrichmentController implements ControllersHelper{
 
   // get Platform suggestions for typeahead
   def suggestPlatform = {
-    log.debug("Getting platform suggestions..")
+    log.debug("Getting platform suggestions for ${params.q} ..")
     def result = [:]
     def platforms = gokbService.getPlatformMap(params.q, true, params.curatoryGroup)
     if (platforms != null){
