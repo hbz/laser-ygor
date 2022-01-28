@@ -26,7 +26,7 @@ class KbartIntegrationService {
 
 
   def integrate(MultipleProcessingThread owner, DataContainer dataContainer,
-                KbartReaderConfiguration kbartReaderConfiguration) {
+                KbartReaderConfiguration kbartReaderConfiguration) throws Exception{
     KbartReader reader = owner.kbartReader.setConfiguration(kbartReaderConfiguration)
     List<FieldKeyMapping> idMappings = [owner.zdbKeyMapping, owner.issnKeyMapping, owner.eissnKeyMapping]
     List<AbstractIdentifier> identifiers

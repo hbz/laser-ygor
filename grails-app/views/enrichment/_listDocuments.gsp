@@ -210,6 +210,9 @@
                                                 if (tippNamespace != "null"){
                                                     $('#pkgTitleId').append($('<option selected="selected"></option>').attr('value', tippNamespace).text(tippNamespace));
                                                 }
+                                                else{
+                                                    $('#pkgTitleId').append($('<option selected="selected"></option>').attr('value', "").text(""));
+                                                }
                                                 $("#pkgTitleId").attr('disabled', 'disabled');
                                             },
                                             error:function(XMLHttpRequest, textStatus, errorThrown){

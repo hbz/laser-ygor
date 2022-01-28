@@ -1,6 +1,7 @@
 package de.hbznrw.ygor.readers
 
 import de.hbznrw.ygor.normalizers.DateNormalizer
+import de.hbznrw.ygor.processing.YgorProcessingException
 import de.hbznrw.ygor.tools.DateToolkit
 import groovy.util.logging.Log4j
 import org.apache.commons.csv.CSVFormat
@@ -42,6 +43,7 @@ class KbartReader {
   char delimiterChar
 
   static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
+  static String INCORRECT_NUMBER_OF_COLUMNS = VALIDATION_TAG_LIB.message(code: 'error.kbart.incorrectNumberOfColumns').toString()
 
   static MANDATORY_KBART_KEYS = [
       'title_url',
@@ -167,16 +169,23 @@ class KbartReader {
 
 
   // NOTE: should have been an override of AbstractReader.readItemData(), but the parameters are too different
-  Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) {
+  Map<String, String> readItemData(LocalDate lastPackageUpdate, boolean ignoreLastChanged) throws YgorProcessingException{
     int i = csvHeader.indexOf("last_changed")
-    while (csvRecords.hasNext()){
-      CSVRecord next = csvRecords.next()
-      LocalDate itemLastUpdate = i > -1 ? DateToolkit.getAsLocalDate(next.get(i)) : null
-      if (itemLastUpdate == null || lastPackageUpdate == null ||
-          ignoreLastChanged || !itemLastUpdate.isBefore(lastPackageUpdate)) {
-        Map<String, String> nextAsMap = returnItem(next)
-        if (nextAsMap != null) return nextAsMap
+    try{
+      while (csvRecords.hasNext()){
+        CSVRecord next = csvRecords.next()
+        LocalDate itemLastUpdate = i > -1 ? DateToolkit.getAsLocalDate(next.get(i)) : null
+        if (itemLastUpdate == null || lastPackageUpdate == null ||
+                ignoreLastChanged || !itemLastUpdate.isBefore(lastPackageUpdate)) {
+          Map<String, String> nextAsMap = returnItem(next)
+          if (nextAsMap != null) return nextAsMap
+        }
       }
+    }
+    catch (ArrayIndexOutOfBoundsException aioobe){
+      YgorProcessingException ype = new YgorProcessingException(INCORRECT_NUMBER_OF_COLUMNS)
+      ype.setStackTrace(aioobe.getStackTrace())
+      throw ype
     }
     return null
   }

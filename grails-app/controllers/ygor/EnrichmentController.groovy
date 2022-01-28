@@ -8,6 +8,7 @@ import de.hbznrw.ygor.readers.KbartReader
 import grails.converters.JSON
 import grails.util.Holders
 import groovy.util.logging.Log4j
+import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.collections.MapUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
@@ -41,7 +42,14 @@ class EnrichmentController implements ControllersHelper{
     namespace_doi_list.addAll(namespace_list)
     namespace_doi_list  << [id: 'doi', text: 'doi']
     Enrichment en = getCurrentEnrichment()
-    setErrorStatus(en)
+    if (en?.ygorFeedback){
+      fillFlash(en.ygorFeedback)
+      if (en.status == Enrichment.ProcessingState.ERROR){
+        enrichmentService.removeErrorEnrichments()
+        en = new Enrichment()
+        enrichmentService.addSessionEnrichment(en)
+      }
+    }
     render(
         view: 'process',
         params: [
@@ -55,17 +63,6 @@ class EnrichmentController implements ControllersHelper{
             record_namespaces : namespace_doi_list,
             curatoryGroups    : allCuratoryGroups,
             currentView       : 'process'
-        ]
-    )
-  }
-
-
-  def json = {
-    render(
-        view: 'json',
-        model: [
-            enrichment : getCurrentEnrichment(),
-            currentView: 'json'
         ]
     )
   }
@@ -104,6 +101,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadFile = {
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading file. ", this.getClass(), null,
         null, null, null)
     SessionService.setSessionDuration(request, 3600)
@@ -115,13 +113,11 @@ class EnrichmentController implements ControllersHelper{
     }
     String encoding = enrichmentService.getEncoding(file.getInputStream(), null)
     if (encoding && encoding != "UTF-8"){
-      flash.info = null
-      flash.warning = null
       String invalidEncoding = message(code: 'error.kbart.invalidEncoding').toString()
       String messageFooter = message(code: 'error.kbart.messageFooter').toString()
-      flash.error = invalidEncoding.concat("<br>").concat(messageFooter)
       ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR
       ygorFeedback.statusDescription += flash.error
+      fillFlash(ygorFeedback)
       redirect(
           action: 'process',
           model: [
@@ -138,6 +134,7 @@ class EnrichmentController implements ControllersHelper{
       flash.error = message(code: 'error.kbart.noValidFile').toString().concat("<br>")
           .concat(message(code: 'error.kbart.messageFooter').toString())
       Enrichment enrichment = getCurrentEnrichment()
+      enrichment.ygorFeedback = ygorFeedback
       render(
           view: 'process',
           params: [
@@ -154,10 +151,12 @@ class EnrichmentController implements ControllersHelper{
     }
     try {
       Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
+      enrichment.ygorFeedback = ygorFeedback
       enrichment.addFileAndFormat()
       enrichment.status = Enrichment.ProcessingState.PREPARE_1
       kbartReader = new KbartReader(enrichment.transferredFile, enrichment.originName)
       kbartReader.checkHeader()
+      fillFlash(enrichment.ygorFeedback)
       redirect(
           action: 'process',
           params: [
@@ -172,28 +171,16 @@ class EnrichmentController implements ControllersHelper{
       )
     }
     catch (Exception ype) {
-      flash.info = null
-      flash.warning = null
-      flash.error = ype.getMessage().concat(": " + file.originalFilename)
+      fillFlash(null, null, ype.getMessage())
       Enrichment enrichment = getCurrentEnrichment()
-      render(
-          view: 'process',
-          params: [
-              resultHash: request.parameterMap.resultHash,
-              originHash: enrichment.originHash
-          ],
-          model: [
-              enrichment : enrichment,
-              currentView: 'process',
-              ygorFeedback : ygorFeedback
-          ]
-      )
+      renderOnError(enrichment, ygorFeedback)
       return
     }
   }
 
 
   def uploadUrl = {
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Uploading URL. ",
         this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 3600)
@@ -217,6 +204,7 @@ class EnrichmentController implements ControllersHelper{
     // load file from URL
     String kbartFileName = KbartFromUrlReader.urlStringToFileString(urlString)
     Enrichment enrichment = Enrichment.fromFilename(kbartFileName)
+    enrichment.ygorFeedback = ygorFeedback
     enrichment.addOnly = false
     enrichment.markDuplicates = true
     enrichment.processingOptions = null
@@ -226,10 +214,7 @@ class EnrichmentController implements ControllersHelper{
       kbartReader.checkHeader()
     }
     catch (Exception e) {
-      flash.info = null
-      flash.warning = null
-      flash.error = e.getMessage()
-
+      fillFlash(null, null, e.getMessage())
       render(
           view: 'process',
           params: [
@@ -251,6 +236,7 @@ class EnrichmentController implements ControllersHelper{
     }
     enrichment.addFileAndFormat()
     enrichment.status = Enrichment.ProcessingState.PREPARE_1
+    fillFlash(enrichment.ygorFeedback)
     redirect(
         action: 'process',
         params: [
@@ -277,6 +263,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def uploadRawFile = {
+    enrichmentService.removeErrorEnrichments()
     SessionService.setSessionDuration(request, 3600)
     def file = request.getFile('uploadRawFile')
     Enrichment enrichment = Enrichment.fromZipFile(file, enrichmentService.sessionFolder.parentFile.absolutePath)
@@ -310,7 +297,7 @@ class EnrichmentController implements ControllersHelper{
     if (request.session.lastUpdate != null){
       request.session.lastUpdate.parameterMap = request.parameterMap
     }
-    setErrorStatus(enrichment)
+    fillFlash(enrichment.ygorFeedback)
     redirect(
         action: 'process',
         params: [
@@ -326,6 +313,7 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processGokbPackage(){
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing Knowledge Base package. ", this.getClass(), null,
         null, null, null)
     SessionService.setSessionDuration(request, 72000)
@@ -407,6 +395,7 @@ class EnrichmentController implements ControllersHelper{
    * Content-Disposition: form-data; name="uploadFile"; filename="yourKBartTestFile.tsv"
    */
   def processCompleteWithToken(){
+    enrichmentService.removeErrorEnrichments()
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION,
         "Complete processing with token authentication. ", this.getClass(), null, null, null, null)
     SessionService.setSessionDuration(request, 72000)
@@ -591,10 +580,9 @@ class EnrichmentController implements ControllersHelper{
 
 
   def processFile = {
-    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.PREPARATION, "Processing file. ", this.getClass(), null,
-        null, null, null)
     SessionService.setSessionDuration(request, 72000)
     def en = getCurrentEnrichment()
+    YgorFeedback ygorFeedback = en.ygorFeedback
     ygorFeedback.processedData.put("enrichment", en.originName)
     try{
       def pmOptions = request.parameterMap['processOption']
@@ -629,7 +617,7 @@ class EnrichmentController implements ControllersHelper{
         }
       }
       if (en.status != Enrichment.ProcessingState.FINISHED){
-        setErrorStatus(en)
+        fillFlash(en.ygorFeedback)
         redirect(
             action: 'process',
             params: [
@@ -639,11 +627,12 @@ class EnrichmentController implements ControllersHelper{
             model: [
                 enrichment : en,
                 currentView: 'process',
-                ygorFeedback : ygorFeedback
+                ygorFeedback : en.ygorFeedback
             ]
         )
       }
       else{
+        fillFlash(en.ygorFeedback)
         redirect(
             controller: 'Statistic',
             action: 'show',
@@ -663,15 +652,8 @@ class EnrichmentController implements ControllersHelper{
       ygorFeedback.exceptions << e
       ygorFeedback.statusDescription += "Exception occurred during processFile."
       setErrorStatus(en)
+      fillFlash(en.ygorFeedback)
       redirect(action: 'process')
-    }
-  }
-
-
-  private void setErrorStatus(Enrichment en){
-    if (en.apiMessage != null){
-      en.status == Enrichment.ProcessingState.ERROR
-      flash.error = en.apiMessage
     }
   }
 
@@ -711,20 +693,35 @@ class EnrichmentController implements ControllersHelper{
 
 
   Enrichment getCurrentEnrichment(){
-    return getCurrentEnrichmentStatic(enrichmentService, request)
+    Enrichment en = getCurrentEnrichmentStatic(enrichmentService, request)
+    log.debug("getCurrentEnrichment() : ${en?.originHash}")
+    return en
   }
 
 
   static Enrichment getCurrentEnrichmentStatic(EnrichmentService enrichmentService, HttpServletRequest request){
-    if (!request.parameterMap['resultHash'] || !(String) request.parameterMap['resultHash'][0]){
-      return new Enrichment()
+    Map enrichments = enrichmentService.getSessionEnrichments()
+    Enrichment result = null
+    if (enrichments.size() == 1 && enrichments.values()[0] != null &&
+        (!request.parameterMap['resultHash'] || !(String)request.parameterMap['resultHash'][0]
+          || (String)request.parameterMap['resultHash'][0] == enrichments.values()[0].resultHash)){
+      // if there is 1 enrichment, this is it
+      result = enrichments.values()[0]
     }
-    def hash = (String) request.parameterMap['resultHash'][0]
-    def enrichments = enrichmentService.getSessionEnrichments()
-    Enrichment result = enrichments[hash.toString()]
+    else if (!request.parameterMap['resultHash'] || !(String) request.parameterMap['resultHash'][0]){
+      // if we don't know which enrichment hash we are looking for, return a new enrichment
+      result = new Enrichment()
+    }
+    def hash
+    // find the hash in the map of enrichments
+    if (null == result){
+      hash = (String) request.parameterMap['resultHash'][0]
+      result = enrichments[hash.toString()]
+    }
     if (null == result){
       result = enrichments.get("${hash.toString()}")
     }
+    // System.out.println("EnrichmentController.getCurrentEnrichmentStatic() : " + result?.originHash)
     result
   }
 
@@ -745,7 +742,7 @@ class EnrichmentController implements ControllersHelper{
 
   // get package title suggestions for typeahead
   def suggestPackageTitle = {
-    log.debug("Getting title suggestions..")
+    log.debug("Getting title suggestions for ${params.q} ..")
     def result = [:]
     boolean suggest = StringUtils.isEmpty(params.curatoryGroup) ? true : false
     def titles = gokbService.getTitleMap(params.q, suggest, params.curatoryGroup)
@@ -756,7 +753,7 @@ class EnrichmentController implements ControllersHelper{
 
   // get Platform suggestions for typeahead
   def suggestPlatform = {
-    log.debug("Getting platform suggestions..")
+    log.debug("Getting platform suggestions for ${params.q} ..")
     def result = [:]
     def platforms = gokbService.getPlatformMap(params.q, true, params.curatoryGroup)
     if (platforms != null){
@@ -783,4 +780,41 @@ class EnrichmentController implements ControllersHelper{
     render result as JSON
   }
 
+
+  private Object renderOnError(Enrichment enrichment, YgorFeedback ygorFeedback) {
+    render(
+        view: 'process',
+        params: [
+            resultHash: request.parameterMap.resultHash,
+            originHash: enrichment.originHash
+        ],
+        model: [
+            enrichment  : enrichment,
+            currentView : 'process',
+            ygorFeedback: ygorFeedback
+        ]
+    )
+  }
+
+
+  private void fillFlash(String info, String warning, String error){
+    flash.info = info
+    flash.warning = warning
+    flash.error = error
+  }
+
+
+  private void fillFlash(YgorFeedback ygorFeedback){
+    flash.info = null
+    flash.warning = null
+    flash.error = flash.error ?: ""
+    if (ygorFeedback != null){
+      if (!CollectionUtils.isEmpty(ygorFeedback.exceptions)){
+        flash.error += ygorFeedback.exceptions.toString() + ". "
+      }
+      if (!CollectionUtils.isEmpty(ygorFeedback.errors.keySet())){
+        flash.error += ygorFeedback.errors.toString() + ". "
+      }
+    }
+  }
 }

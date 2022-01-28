@@ -316,7 +316,19 @@ class EnrichmentService{
   }
 
 
-  static def getSessionEnrichments(){
+  void removeErrorEnrichments(){
+    def enrichments = getSessionEnrichments()
+    Iterator it = enrichments.iterator()
+    while (it.hasNext()){
+      def enPair = it.next()
+      if (enPair.value.status == Enrichment.ProcessingState.ERROR){
+        enrichments.remove(enPair.key)
+      }
+    }
+  }
+
+
+  static Map<String, Enrichment> getSessionEnrichments(){
     HttpSession session = SessionToolkit.getSession()
     if (!session.enrichments){
       session.enrichments = [:]

@@ -168,6 +168,7 @@ class Enrichment{
     ygorVersion = options.get('ygorVersion')
     dataContainer.info.file = originName
     dataContainer.info.type = options.get('ygorType')
+    this.ygorFeedback = ygorFeedback
     thread = new MultipleProcessingThread(this, options, kbartReader, ygorFeedback)
     thread.start()
   }
