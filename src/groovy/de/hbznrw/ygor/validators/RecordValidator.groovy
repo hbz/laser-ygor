@@ -1,10 +1,12 @@
 package de.hbznrw.ygor.validators
 
 import de.hbznrw.ygor.enums.Status
-import de.hbznrw.ygor.normalizers.DateNormalizer
+import de.hbznrw.ygor.tools.DateToolkit
 import ygor.Record
 import ygor.RecordFlag
 import ygor.field.MultiField
+
+import java.time.LocalDate
 
 class RecordValidator {
 
@@ -24,10 +26,10 @@ class RecordValidator {
 
 
     // remove due data error
-    Date startDateTime = DateNormalizer.formatDateTime(startDate.getFirstPrioValue())
-    Date endDateTime = DateNormalizer.formatDateTime(endDate.getFirstPrioValue())
+    LocalDate startDateTime = DateToolkit.getAsLocalDate(startDate.getFirstPrioValue())
+    LocalDate endDateTime = DateToolkit.getAsLocalDate(endDate.getFirstPrioValue())
     if (startDateTime != null && endDateTime != null){
-      if (startDateTime > endDateTime){
+      if (startDateTime.isAfter(endDateTime)){
         RecordFlag flag = record.getFlagWithErrorCode(RecordFlag.ErrorCode.ISSUE_ONLINE_DATES_ORDER)
         if (flag == null){
           flag = new RecordFlag(Status.INVALID, "${endDate.keyMapping.ygorKey} ${endDate.getFirstPrioValue()} %s",

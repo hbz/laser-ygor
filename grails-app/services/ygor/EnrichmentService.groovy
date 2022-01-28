@@ -80,7 +80,7 @@ class EnrichmentService{
     if (pm['pkgIdNamespace'] && "" != pm['pkgIdNamespace'][0].trim()){
       enrichment.dataContainer.pkgIdNamespace = (pm['pkgIdNamespace'][0])
     }
-    if (pm['pkgTitleId']){
+    if (pm['pkgTitleId'] && "" != pm['pkgTitleId'][0].trim()){
       enrichment.dataContainer.info.namespace_title_id = pm['pkgTitleId'][0]
     }
   }
@@ -316,7 +316,19 @@ class EnrichmentService{
   }
 
 
-  static def getSessionEnrichments(){
+  void removeErrorEnrichments(){
+    def enrichments = getSessionEnrichments()
+    Iterator it = enrichments.iterator()
+    while (it.hasNext()){
+      def enPair = it.next()
+      if (enPair.value.status == Enrichment.ProcessingState.ERROR){
+        enrichments.remove(enPair.key)
+      }
+    }
+  }
+
+
+  static Map<String, Enrichment> getSessionEnrichments(){
     HttpSession session = SessionToolkit.getSession()
     if (!session.enrichments){
       session.enrichments = [:]
