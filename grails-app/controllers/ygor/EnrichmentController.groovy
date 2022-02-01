@@ -15,6 +15,7 @@ import org.apache.commons.lang.StringUtils
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 
 import javax.servlet.http.HttpServletRequest
+import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
@@ -612,6 +613,7 @@ class EnrichmentController implements ControllersHelper{
                 'ygorType'   : grailsApplication.config.ygor.type
             ]
             en.processingOptions = Arrays.asList(pmOptions)
+            en.lastProcessingDate = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").format(new Date())
             en.process(options, kbartReader, ygorFeedback)
           }
         }
