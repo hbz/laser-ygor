@@ -15,6 +15,7 @@ import org.apache.commons.lang.StringUtils
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 
 import javax.servlet.http.HttpServletRequest
+import java.nio.file.Files
 import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
@@ -379,6 +380,34 @@ class EnrichmentController implements ControllersHelper{
       }
     }
     render result as JSON
+  }
+
+
+  def uploadRawFileFromWEKB (){
+    enrichmentService.removeErrorEnrichments()
+    SessionService.setSessionDuration(request, 3600)
+
+    File rawFileFromWEKB = new File("${grailsApplication.config.ygorStatisticStorageLocation.toString()}/${params.ygorStatisticResultHash}.raw.zip")
+
+    Enrichment enrichment = Enrichment.fromZipFile(rawFileFromWEKB, enrichmentService.sessionFolder.parentFile.absolutePath)
+    enrichmentService.addSessionEnrichment(enrichment)
+    if (null == request.session.lastUpdate){
+      request.session.lastUpdate = [:]
+    }
+    enrichment.setCurrentSession()
+    enrichment.save()
+    redirect(
+            controller: 'Statistic',
+            action: 'show',
+            params: [
+                    resultHash: enrichment.resultHash,
+                    originHash: enrichment.originHash
+            ],
+            model: [
+                    enrichment : enrichment,
+                    currentView: 'process'
+            ]
+    )
   }
 
 
