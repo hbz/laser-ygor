@@ -316,6 +316,10 @@
                                     $("#pkgNominalPlatform").removeAttr('disabled');
                                     $("#pkgTitleId").removeAttr('disabled');
                                 }
+                                function unRequireSelects(){
+                                    $("#pkgNominalProvider").removeAttr('required');
+                                    $("#pkgNominalPlatform").removeAttr('required');
+                                }
                             </script>
                         </g:if>
 
@@ -401,8 +405,8 @@
                 </ul>
 
                 <g:if test="${enrichment.status == Enrichment.ProcessingState.PREPARE_1 || enrichment.status == Enrichment.ProcessingState.PREPARE_2}">
-                    <g:actionSubmit action="deleteFile" value="${message(code:'listDocuments.button.deleteFile')}" class="btn btn-danger"/>
-                    <g:actionSubmit action="correctFile" value="${message(code:'listDocuments.button.correctFile')}" class="btn btn-warning"/>
+                    <g:actionSubmit onclick="unRequireSelects()" action="deleteFile" value="${message(code:'listDocuments.button.deleteFile')}" class="btn btn-danger"/>
+                    <g:actionSubmit onclick="unRequireSelects()" action="correctFile" value="${message(code:'listDocuments.button.correctFile')}" class="btn btn-warning"/>
                     <g:if test="${enrichment.status == Enrichment.ProcessingState.PREPARE_1}">
                         <g:actionSubmit onclick="reEnableSelects()" action="prepareFile" value="${message(code:'listDocuments.button.processfile')}" class="btn btn-success"/>
                     </g:if>
@@ -414,8 +418,8 @@
                     <g:actionSubmit action="stopProcessingFile" value="${message(code:'listDocuments.button.stopprocessingfile')}" class="btn btn-danger"/>
                 </g:if>
                 <g:if test="${enrichment.status == Enrichment.ProcessingState.ERROR}">
-                    <g:actionSubmit action="deleteFile" value="${message(code:'listDocuments.button.deleteFile')}" class="btn btn-danger"/>
-                    <g:actionSubmit action="correctFile" value="${message(code:'listDocuments.button.correctFile')}" class="btn btn-warning"/>
+                    <g:actionSubmit onclick="unRequireSelects()" action="deleteFile" value="${message(code:'listDocuments.button.deleteFile')}" class="btn btn-danger"/>
+                    <g:actionSubmit onclick="unRequireSelects()" action="correctFile" value="${message(code:'listDocuments.button.correctFile')}" class="btn btn-warning"/>
                 </g:if>
 
                 <br/>
