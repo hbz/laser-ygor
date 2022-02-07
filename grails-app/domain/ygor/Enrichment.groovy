@@ -404,7 +404,14 @@ class Enrichment{
 
   static Enrichment fromZipFile(def zipFile, String sessionFoldersRoot) throws IOException{
     JsonSlurper slurpy = new JsonSlurper()
-    ZipInputStream zis = new ZipInputStream(zipFile.getInputStream())
+    InputStream inputStream
+    if(zipFile instanceof File){
+      inputStream = new FileInputStream(zipFile)
+    }else {
+      inputStream = zipFile.getInputStream()
+    }
+
+    ZipInputStream zis = new ZipInputStream(inputStream)
     ZipEntry zipEntry = zis.getNextEntry()
     if (zipEntry != null){
       Map<?,?> configMap = getConfigMap(zipEntry, zis, slurpy, sessionFoldersRoot)

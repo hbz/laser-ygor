@@ -2,6 +2,7 @@ package de.hbznrw.ygor.processing
 
 import de.hbznrw.ygor.export.DataContainer
 import de.hbznrw.ygor.export.GokbExporter
+import de.hbznrw.ygor.tools.FileToolkit
 import grails.util.Holders
 import groovy.util.logging.Log4j
 import groovyx.net.http.ContentType
@@ -12,6 +13,8 @@ import ygor.AutoUpdateService
 import ygor.Enrichment
 
 import javax.annotation.Nonnull
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -78,10 +81,24 @@ class SendPackageThreadGokb extends UploadThreadGokb{
       json = enrichment.getAsFile(Enrichment.FileType.PACKAGE, true)
     }
     log.info("... exportFile: " + enrichment.resultHash + " -> " + uri)
+
+    if(grails.util.Holders.grailsApplication.config.ygor.uploadLocation && enrichment.resultHash != "" && enrichment.dataContainer.pkgHeader?.token) {
+      File uploadFolder = new File("${grails.util.Holders.grailsApplication.config.ygor.uploadLocation.toString()}/${enrichment.resultHash}.raw.zip")
+
+      File zipFile = FileToolkit.zipFiles(enrichment.sessionFolder, enrichment.resultHash)
+
+      Files.copy(zipFile.toPath(), uploadFolder.toPath())
+
+    }
+
+
     if (isUpdate){
       uri = uri.replace("\\?", "/${enrichment.dataContainer?.pkgHeader?.uuid}?")
       if (enrichment.addOnly){
         uri = uri.concat("&addOnly=true")
+      }
+      if (enrichment.resultHash != "" && enrichment.dataContainer.pkgHeader?.token){
+        uri = uri.concat("&resultHash=${enrichment.resultHash}")
       }
       result << GokbExporter.sendUpdate(uri, json.getText(), locale, ygorFeedback)
     }
