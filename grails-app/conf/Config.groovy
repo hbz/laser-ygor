@@ -91,6 +91,8 @@ grails.hibernate.osiv.readonly = false
 environments {
   development {
     grails.logging.jul.usebridge = true
+    ygorStatisticStorageLocation = '/tmp/ygor/dev' //the same path must be as it was set for the wekb
+    ygorUploadJsonLocation = '/tmp/ygor/dev' //the same path must be as it was set for the wekb
     ygor {
       version = grails.util.Metadata.current.'app.version'
       type = 'development'
@@ -100,14 +102,14 @@ environments {
       autoUpdateJobsInterval = '30 30 3 ? * * *' // check for updates every day at 03:30:30am
     }
     gokbApi {
-      baseUri           = 'http://localhost:8080/gokb/'
-      xrTitleUri        = 'http://localhost:8080/gokb/integration/crossReferenceTitle'
-      xrPackageUri      = 'http://localhost:8080/gokb/integration/crossReferencePackage'
-      xrSuggestUriStub  = 'http://localhost:8080/gokb/api/suggest'
-      xrFindUriStub     = 'http://localhost:8080/gokb/api/find'
-      xrJobInfo         = 'http://localhost:8080/gokb/integration/getJobInfo'
-      packageInfo       = 'http://localhost:8080/gokb/rest/packages/'
-      platformInfo      = 'http://localhost:8080/gokb/rest/platforms/'
+      baseUri           = 'http://localhost:8080/wekb/'
+      xrTitleUri        = 'http://localhost:8080/wekb/integration/crossReferenceTitle'
+      xrPackageUri      = 'http://localhost:8080/wekb/integration/crossReferencePackage'
+      xrSuggestUriStub  = 'http://localhost:8080/wekb/api/suggest'
+      xrFindUriStub     = 'http://localhost:8080/wekb/api/find'
+      xrJobInfo         = 'http://localhost:8080/wekb/integration/getJobInfo'
+      packageInfo       = 'http://localhost:8080/wekb/rest/packages/'
+      platformInfo      = 'http://localhost:8080/wekb/rest/platforms/'
       namespaceCategory = 'ttl_prv'
       user              = ''
       pwd               = ''
@@ -120,6 +122,8 @@ environments {
   }
   production {
     grails.logging.jul.usebridge = false
+    ygorStatisticStorageLocation = '/tmp/ygor/dev' //the same path must be as it was set for the wekb
+    ygorUploadJsonLocation = '/tmp/ygor/dev' //the same path must be as it was set for the wekb
     ygor {
       version = grails.util.Metadata.current.'app.version'
       type = 'production'

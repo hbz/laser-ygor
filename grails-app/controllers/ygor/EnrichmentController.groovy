@@ -555,10 +555,15 @@ class EnrichmentController implements ControllersHelper{
     }
     else if (uploadJob instanceof UploadJob){
       log.debug("Upload job $jobId is instance of UploadJob.")
-      uploadJob.updateCount()
-      uploadJob.refreshStatus()
-      result.status = uploadJob.getStatus().toString()
-      result.gokbJobId = uploadJob.uploadThread?.gokbJobId
+      if(params.noGokbJobId){
+        result.resultHash = uploadJob.uploadThread?.enrichment?.resultHash
+        result.status = uploadJob.getStatus().toString()
+      }else {
+        uploadJob.updateCount()
+        uploadJob.refreshStatus()
+        result.status = uploadJob.getStatus().toString()
+        result.gokbJobId = uploadJob.uploadThread?.gokbJobId
+      }
       render result as JSON
     }
     else if (uploadJob.status == UploadThreadGokb.Status.ERROR){

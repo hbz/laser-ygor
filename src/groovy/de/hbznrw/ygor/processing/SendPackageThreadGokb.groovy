@@ -11,6 +11,7 @@ import groovyx.net.http.Method
 import org.apache.commons.lang.StringUtils
 import ygor.AutoUpdateService
 import ygor.Enrichment
+import ygor.EnrichmentService
 
 import javax.annotation.Nonnull
 import java.nio.file.Files
@@ -100,7 +101,17 @@ class SendPackageThreadGokb extends UploadThreadGokb{
       if (enrichment.resultHash != "" && enrichment.dataContainer.pkgHeader?.token){
         uri = uri.concat("&resultHash=${enrichment.resultHash}")
       }
-      result << GokbExporter.sendUpdate(uri, json.getText(), locale, ygorFeedback)
+
+      if(grails.util.Holders.grailsApplication.config.ygorUploadJsonLocation && enrichment.dataContainer.pkgHeader?.token && enrichment.resultHash != "") {
+        File uploadFolder = new File("${grails.util.Holders.grailsApplication.config.ygorUploadJsonLocation.toString()}/${enrichment.resultHash}.packageWithTitleData.json")
+        File jsonFile = GokbExporter.getFile(enrichment, Enrichment.FileType.PACKAGE_WITH_TITLEDATA, true)
+
+        Files.copy(jsonFile.toPath(), uploadFolder.toPath())
+
+        status = UploadThreadGokb.Status.SUCCESS
+      }else {
+        result << GokbExporter.sendUpdate(uri, json.getText(), locale, ygorFeedback)
+      }
     }
     else{
       if (enrichment.addOnly){
@@ -108,8 +119,11 @@ class SendPackageThreadGokb extends UploadThreadGokb{
       }
       result << GokbExporter.sendText(uri, json.getText(), user, password, locale, ygorFeedback)
     }
-    gokbJobId = result[0].get("info")?.get("job_id")?.toString()
-    log.info("Finished package upload thread for KB job id ${gokbJobId}.")
+
+    if(result.size() > 0) {
+      gokbJobId = result[0].get("info")?.get("job_id")?.toString()
+      log.info("Finished package upload thread for KB job id ${gokbJobId}.")
+    }
   }
 
 
