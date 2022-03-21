@@ -356,38 +356,12 @@ class StatisticController implements ControllersHelper{
   }
 
 
-  def downloadPackageFile = {
-    SessionService.setSessionDuration(request, 7200)
-    def en = getCurrentEnrichment()
-    if (en){
-      def result = enrichmentService.getFile(en, Enrichment.FileType.PACKAGE)
-      render(file: result, fileName: "${en.resultName}.package.json")
-    }
-    else{
-      noValidEnrichment()
-    }
-  }
-
-
   def downloadIntegratedPackageFile = {
     SessionService.setSessionDuration(request, 72000)
     def en = getCurrentEnrichment()
     if (en){
       def result = enrichmentService.getFile(en, Enrichment.FileType.PACKAGE_WITH_TITLEDATA)
       render(file: result, fileName: "${en.resultName}.packageWithTitleData.json")
-    }
-    else{
-      noValidEnrichment()
-    }
-  }
-
-
-  def downloadTitlesFile = {
-    SessionService.setSessionDuration(request, 72000)
-    def en = getCurrentEnrichment()
-    if (en){
-      def result = enrichmentService.getFile(en, Enrichment.FileType.TITLES)
-      render(file: result, fileName: "${en.resultName}.titles.json")
     }
     else{
       noValidEnrichment()
@@ -408,27 +382,11 @@ class StatisticController implements ControllersHelper{
   }
 
 
-  def sendPackageFile = {
-    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.RUNNING, "Send package file.",
-        this.getClass(), null,        null, null, null)
-    SessionService.setSessionDuration(request, 72000)
-    sendFile(Enrichment.FileType.PACKAGE, ygorFeedback)
-  }
-
-
   def sendIntegratedPackageFile = {
     YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.RUNNING, "Send integrated package file.",
         this.getClass(), null,        null, null, null)
     SessionService.setSessionDuration(request, 72000)
     sendFile(Enrichment.FileType.PACKAGE_WITH_TITLEDATA, ygorFeedback)
-  }
-
-
-  def sendTitlesFile = {
-    YgorFeedback ygorFeedback = new YgorFeedback(YgorFeedback.YgorProcessingStatus.RUNNING, "Send titles file.",
-        this.getClass(), null,        null, null, null)
-    SessionService.setSessionDuration(request, 72000)
-    sendFile(Enrichment.FileType.TITLES, ygorFeedback)
   }
 
 
