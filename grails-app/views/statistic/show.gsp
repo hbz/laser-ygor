@@ -373,32 +373,6 @@
             <g:hiddenField name="resultHash" value="${resultHash}"/>
             <div class="col-xs-12" style="margin-bottom: 20px">
                 <g:if test="${grailsApplication.config.ygor.enableGokbUpload}">
-                    <g:if test="${titlesUploaded == true}">
-                        <!-- Titles have already been uploaded -> disable upload button -->
-                        <button type="button" class="btn btn-success btn-same-width" data-toggle="modal" gokbdata="titles"
-                                data-target="#credentialsModal" onclick="assignSendTargetToModal()" disabled="disabled">
-                            <g:message code="listDocuments.button.sendTitlesFile"/>
-                        </button>
-                    </g:if>
-                    <g:else>
-                        <button type="button" class="btn btn-success btn-same-width" data-toggle="modal" gokbdata="titles"
-                                data-target="#credentialsModal" onclick="assignSendTargetToModal()">
-                            <g:message code="listDocuments.button.sendTitlesFile"/>
-                        </button>
-                    </g:else>
-                    <g:if test="${packageUploaded == true}">
-                        <!-- Package has already been uploaded -> disable upload button -->
-                        <button type="button" class="btn btn-success btn-same-width" data-toggle="modal" gokbdata="package"
-                                data-target="#credentialsModal" onclick="assignSendTargetToModal()" disabled="disabled">
-                            <g:message code="listDocuments.button.sendPackageFile"/>
-                        </button>
-                    </g:if>
-                    <g:else>
-                        <button type="button" class="btn btn-success btn-same-width" data-toggle="modal" gokbdata="package"
-                                data-target="#credentialsModal" onclick="assignSendTargetToModal()">
-                            <g:message code="listDocuments.button.sendPackageFile"/>
-                        </button>
-                    </g:else>
                     <g:if test="${packageUploaded == true}">
                         <!-- Package has already been uploaded -> disable upload button -->
                         <button type="button" class="btn btn-success btn-same-width" data-toggle="modal" gokbdata="packageWithTitles"
@@ -452,14 +426,8 @@
                         function assignSendTargetToModal(){
                             $('#credentialsModal').on('show.bs.modal', function (event) {
                                 var uri = $(event.relatedTarget)[0].getAttribute("gokbdata");
-                                if (uri.localeCompare('package') == 0) {
-                                    $(this).find('#cred-modal-btn-send').attr('name', '_action_sendPackageFile');
-                                }
-                                else if (uri.localeCompare('packageWithTitles') == 0) {
+                                if (uri.localeCompare('packageWithTitles') == 0) {
                                     $(this).find('#cred-modal-btn-send').attr('name', '_action_sendIntegratedPackageFile');
-                                }
-                                else if (uri.localeCompare('titles') == 0) {
-                                    $(this).find('#cred-modal-btn-send').attr('name', '_action_sendTitlesFile');
                                 }
                             });
                         }
@@ -472,26 +440,9 @@
                                     data-toggle="tooltip" data-placement="top"
                                     title="Deaktiviert: ${grailsApplication.config.gokbApi.xrPackageUri}"
                                     disabled="disabled"/>
-                    <g:actionSubmit action="sendPackageFile"
-                                    value="${message(code: 'listDocuments.button.sendPackageFile')}"
-                                    class="btn btn-success disabled btn-same-width"
-                                    data-toggle="tooltip" data-placement="top"
-                                    title="Deaktiviert: ${grailsApplication.config.gokbApi.xrPackageUri}"
-                                    disabled="disabled"/>
-                    <g:actionSubmit action="sendTitlesFile" value="${message(code: 'listDocuments.button.sendTitlesFile')}"
-                                    class="btn btn-success disabled btn-same-width"
-                                    data-toggle="tooltip" data-placement="top"
-                                    title="Deaktiviert: ${grailsApplication.config.gokbApi.xrTitleUri}"
-                                    disabled="disabled"/>
                     <br/>
                     <br/>
                 </g:else>
-                <g:actionSubmit action="downloadTitlesFile"
-                                value="${message(code: 'listDocuments.button.downloadTitlesFile')}"
-                                class="btn btn-default btn-same-width"/>
-                <g:actionSubmit action="downloadPackageFile"
-                                value="${message(code: 'listDocuments.button.downloadPackageFile')}"
-                                class="btn btn-default btn-same-width"/>
                 <g:actionSubmit action="downloadIntegratedPackageFile"
                                 value="${message(code: 'listDocuments.button.downloadIntegratedPackageFile')}"
                                 class="btn btn-default btn-same-width"/>
