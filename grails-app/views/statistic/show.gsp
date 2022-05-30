@@ -420,8 +420,6 @@
                             </div>
                         </div>
                     </div>
-                    <br/>
-                    <br/>
                     <script>
                         function assignSendTargetToModal(){
                             $('#credentialsModal').on('show.bs.modal', function (event) {
@@ -440,9 +438,13 @@
                                     data-toggle="tooltip" data-placement="top"
                                     title="Deaktiviert: ${grailsApplication.config.gokbApi.xrPackageUri}"
                                     disabled="disabled"/>
-                    <br/>
-                    <br/>
+
                 </g:else>
+                <g:actionSubmit action="downloadStatisticsFile"
+                                value="${message(code: 'listDocuments.button.downloadStatisticsFile')}"
+                                class="btn btn-default btn-same-width"/>
+                <br>
+                <br>
                 <g:actionSubmit action="downloadIntegratedPackageFile"
                                 value="${message(code: 'listDocuments.button.downloadIntegratedPackageFile')}"
                                 class="btn btn-default btn-same-width"/>

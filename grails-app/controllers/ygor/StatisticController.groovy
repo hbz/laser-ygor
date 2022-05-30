@@ -33,6 +33,7 @@ class StatisticController implements ControllersHelper{
     }
   }
   EnrichmentService enrichmentService
+  StatisticsService statisticsService
   Set<String> enrichmentsUploading = []
   String gokbUsername
   String gokbPassword
@@ -241,16 +242,16 @@ class StatisticController implements ControllersHelper{
   }
 
 
-  private void upsertRecordIdentifier(Enrichment enrichment, Record record, AbstractIdentifier identifier, Class clazz,
+  private void upsertRecordIdentifier(Enrichment enrichment, Record rec, AbstractIdentifier identifier, Class clazz,
                                       FieldKeyMapping fkm, String id){
     if (identifier != null){
-      enrichment.dataContainer.removeRecordFromIdSortation(identifier, record)
+      enrichment.dataContainer.removeRecordFromIdSortation(identifier, rec)
       identifier.identifier = id
     }
     else{
       identifier = clazz.newInstance(id, fkm)
     }
-    enrichment.dataContainer.addRecordToIdSortation(identifier, record)
+    enrichment.dataContainer.addRecordToIdSortation(identifier, rec)
   }
 
 
@@ -362,6 +363,19 @@ class StatisticController implements ControllersHelper{
     if (en){
       def result = enrichmentService.getFile(en, Enrichment.FileType.PACKAGE_WITH_TITLEDATA)
       render(file: result, fileName: "${en.resultName}.packageWithTitleData.json")
+    }
+    else{
+      noValidEnrichment()
+    }
+  }
+
+
+  def downloadStatisticsFile = {
+    SessionService.setSessionDuration(request, 72000)
+    def en = getCurrentEnrichment()
+    if (en){
+      def result = statisticsService.getStatisticsExport(en)
+      render(file: result, fileName: "${en.resultName}.statistics.tsv")
     }
     else{
       noValidEnrichment()
