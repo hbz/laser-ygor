@@ -271,6 +271,17 @@ class Record{
   }
 
 
+  Set<RecordFlag> getFlagsByColour(RecordFlag.Colour colour){
+    Set<RecordFlag> result = new HashSet<>()
+    for (RecordFlag flag in flags.values()){
+      if (flag.colour.equals(colour)){
+        result.add(flag)
+      }
+    }
+    result
+  }
+
+
   void addMultiField(MultiField multiField) {
     multiFields.put(multiField.ygorFieldKey, multiField)
   }
