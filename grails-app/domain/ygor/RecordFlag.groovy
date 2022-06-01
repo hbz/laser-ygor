@@ -78,7 +78,8 @@ class RecordFlag{
   enum ErrorCode{
     ISSUE_ONLINE_DATES_ORDER,
     ONLINE_ID_REPLACED,
-    PRINT_ID_REPLACED
+    PRINT_ID_REPLACED,
+    MISSING_ZDB_ALIGNMENT
   }
 
 }

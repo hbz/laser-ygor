@@ -217,6 +217,14 @@ class Record{
 
   void validateContent(String namespace) {
     this.validateMultifields(namespace)
+
+    if (publicationType.equals("serial") && zdbIntegrationUrl == null){
+      RecordFlag flag = new RecordFlag(Status.WARNING, "Missing ZDB alignment", 'statistic.edit.record.missingZdbAlignment',
+          multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.MISSING_ZDB_ALIGNMENT)
+      flag.setColour(RecordFlag.Colour.YELLOW)
+      flags.put(flag.errorCode, flag)
+    }
+
     RecordValidator.validateCoverage(this)
     RecordValidator.validateHistoryEvent(this)
     RecordValidator.validatePublisherHistory(this)
