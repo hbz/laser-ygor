@@ -375,7 +375,7 @@ class StatisticController implements ControllersHelper{
     def en = getCurrentEnrichment()
     if (en){
       def result = statisticsService.getStatisticsExport(en)
-      render(file: result, fileName: "${en.resultName}.statistics.tsv")
+      render(file: result, fileName: "${en.resultName}.statistics.ods", contentType: "application/ods")
     }
     else{
       noValidEnrichment()
