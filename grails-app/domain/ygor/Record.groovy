@@ -17,11 +17,13 @@ import de.hbznrw.ygor.validators.RecordValidator
 import groovy.json.JsonSlurper
 import org.apache.commons.lang.StringUtils
 import org.codehaus.groovy.grails.io.support.ClassPathResource
+import org.springframework.context.i18n.LocaleContextHolder as LCH
 import ygor.RecordFlag.ErrorCode
 import ygor.field.HistoryEvent
 import ygor.field.MappingsContainer
 import ygor.field.MultiField
 import ygor.identifier.*
+
 
 @SuppressWarnings('JpaObjectClassSignatureInspection')
 class Record{
@@ -39,6 +41,8 @@ class Record{
   static{
     JSON_FACTORY.enable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)
   }
+
+  def messageSource = grails.util.Holders.applicationContext.getBean("messageSource")
 
   String uid
   ZdbIdentifier zdbId
@@ -215,19 +219,49 @@ class Record{
   }
 
 
-  void validateContent(String namespace) {
+  void validateContent(String namespace, boolean isZdbIntegrated = false) {
     this.validateMultifields(namespace)
+    RecordValidator.validateCoverage(this)
+    RecordValidator.validateHistoryEvent(this)
+    RecordValidator.validatePublisherHistory(this)
 
-    if (publicationType.equals("serial") && zdbIntegrationUrl == null){
-      RecordFlag flag = new RecordFlag(Status.WARNING, "Missing ZDB alignment", 'statistic.edit.record.missingZdbAlignment',
-          multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.MISSING_ZDB_ALIGNMENT)
+    if (multiFields.get("publicationType").getFirstPrioValue().equals("Serial") &&
+        !multiFields.get("zdbId").status.toString().equals(Status.VALID.toString())){
+      RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.zdbmatch',
+          null, "ZDB match", LCH.getLocale()), 'statistic.edit.record.zdbmatch',
+          multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.ZDB_MATCH)
+      if (!isValid() && isZdbIntegrated){
+        flag.setColour(RecordFlag.Colour.RED)
+      }
+      else{
+        flag.setColour(RecordFlag.Colour.YELLOW)
+      }
+      flags.put(flag.errorCode, flag)
+    }
+
+    if (!hasValidPublicationType()){
+      RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.invalidPublicationType',
+          null, "Invalid publication_type", LCH.getLocale()), 'statistic.edit.record.invalidPublicationType',
+          multiFields.get("publicationType").keyMapping, RecordFlag.ErrorCode.INVALID_PUBLICATION_TYPE)
+      flag.setColour(RecordFlag.Colour.RED)
+      flags.put(flag.errorCode, flag)
+    }
+
+    if (!duplicates.isEmpty()){
+      RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.duplicateIdentifiers',
+          null, "Duplicate identifiers", LCH.getLocale()), 'statistic.edit.record.duplicateIdentifiers',
+          multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.DUPLICATE_IDENTIFIERS)
       flag.setColour(RecordFlag.Colour.YELLOW)
       flags.put(flag.errorCode, flag)
     }
 
-    RecordValidator.validateCoverage(this)
-    RecordValidator.validateHistoryEvent(this)
-    RecordValidator.validatePublisherHistory(this)
+    if (publicationType.equals("serial") && zdbIntegrationUrl == null){
+      RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.missingZdbAlignment',
+          null, "Missing ZDB alignment", LCH.getLocale()), 'statistic.edit.record.missingZdbAlignment',
+          multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.MISSING_ZDB_ALIGNMENT)
+      flag.setColour(RecordFlag.Colour.YELLOW)
+      flags.put(flag.errorCode, flag)
+    }
   }
 
 
