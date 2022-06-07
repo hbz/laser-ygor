@@ -31,7 +31,7 @@ class StatisticsService {
     }
 
     SpreadSheet spreadSheet = new SpreadSheet()
-    Sheet sheet = new Sheet(VALIDATION_TAG_LIB.message(code: 'statistic.export.redTable').toString())
+    Sheet sheet = new Sheet(VALIDATION_TAG_LIB.message(code: 'statistic.export.tableName').toString())
     sheet.appendColumns(kbartFields.size())
 
     // set header
@@ -41,7 +41,20 @@ class StatisticsService {
       range.setFontBold(true)
     }
 
-    // append lines
+    appendFlags(sheet, enrichment, redRecords, yellowRecords)
+
+    sheet.setColumnWidth(0, 90D)
+    sheet.setColumnWidth(1, 30D)
+    sheet.setColumnWidth(2, 80D)
+    spreadSheet.appendSheet(sheet)
+    File exportFile = new File("${grails.util.Holders.grailsApplication.config.ygorStatisticStorageLocation.toString()}/${enrichment.resultHash}.statistics.ods")
+    spreadSheet.save(exportFile)
+    return exportFile
+  }
+
+
+  private static void appendFlags(Sheet sheet, Enrichment enrichment, HashMap<String, String> redRecords,
+                                  HashMap<String, String> yellowRecords){
     for (recUid in enrichment.dataContainer.records){
       Record rec
       if (redRecords.get(recUid)){
@@ -57,13 +70,6 @@ class StatisticsService {
         appendSheetLine(rec, sheet, enrichment, YELLOW, RecordFlag.Colour.YELLOW)
       }
     }
-    sheet.setColumnWidth(0, 90D)
-    sheet.setColumnWidth(1, 30D)
-    sheet.setColumnWidth(2, 80D)
-    spreadSheet.appendSheet(sheet)
-    File exportFile = new File("${grails.util.Holders.grailsApplication.config.ygorStatisticStorageLocation.toString()}/${enrichment.resultHash}.statistics.ods")
-    spreadSheet.save(exportFile)
-    return exportFile
   }
 
 

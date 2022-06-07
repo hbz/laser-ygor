@@ -8,6 +8,8 @@ import de.hbznrw.ygor.tools.JsonToolkit
 import de.hbznrw.ygor.validators.Validator
 import org.apache.commons.lang.StringUtils
 import org.codehaus.groovy.grails.plugins.web.taglib.ValidationTagLib
+import ygor.Record
+import ygor.RecordFlag
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -15,7 +17,10 @@ import java.util.regex.Pattern
 @SuppressWarnings('JpaObjectClassSignatureInspection')
 class MultiField {
 
+  static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
   static mapWith = "none" // disable persisting into database
+  static hasMany = [fields: Field]
+  final private static Pattern FIXED_PATTERN = Pattern.compile("\\{fixed=(.*)}")
 
   String ygorFieldKey
   String displayName
@@ -26,10 +31,6 @@ class MultiField {
   String status
   String normalized = null
   String revised = null
-
-  static hasMany = [fields: Field]
-
-  final private static Pattern FIXED_PATTERN = Pattern.compile("\\{fixed=(.*)}")
 
   static constraints = {
   }
@@ -160,7 +161,7 @@ class MultiField {
   }
 
 
-  void validateContent(String namespace) {
+  void validateContent(String namespace, Record rec) {
     String value = getFirstPrioValue()
     if (keyMapping != null && keyMapping.allowedValues != null && !keyMapping.allowedValues.isEmpty()){
       if (!(value.toLowerCase() in keyMapping.allowedValues)){
@@ -170,6 +171,13 @@ class MultiField {
         }
         else{
           status = Status.INVALID
+          String fieldName = !keyMapping.kbartKeys?.isEmpty() ? keyMapping.kbartKeys.get(0) : ygorFieldKey
+          RecordFlag flag = new RecordFlag(Status.INVALID, VALIDATION_TAG_LIB.message(
+              code: 'statistic.export.field.nonAllowedValue').toString().concat(" $fieldName"),
+              "statistic.export.field.nonAllowedValue", keyMapping, RecordFlag.ErrorCode.INVALID_FIELD_CONTENT
+          )
+          flag.setColour(RecordFlag.Colour.YELLOW)
+          rec.putFlag(flag)
         }
         return
       }

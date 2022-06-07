@@ -53,7 +53,6 @@ class Record{
   String publicationType
   String displayTitle
   Map multiFields
-  Map validation
   String zdbIntegrationDate // TODO : performance check : this information can be replaced by a boolean "isZdbIntegrated"
   String ezbIntegrationDate // TODO : performance check : this information can be replaced by a boolean "isEzbIntegrated"
   String zdbIntegrationUrl
@@ -64,7 +63,6 @@ class Record{
 
 
   static hasMany = [multiFields       : MultiField,
-                    validation        : Status,
                     historyEvents     : HistoryEvent,
                     duplicates        : String,
                     flags             : RecordFlag]
@@ -223,7 +221,6 @@ class Record{
     this.validateMultifields(namespace)
     RecordValidator.validateCoverage(this)
     RecordValidator.validateHistoryEvent(this)
-    RecordValidator.validatePublisherHistory(this)
 
     if (multiFields.get("publicationType").getFirstPrioValue().equals("Serial") &&
         !multiFields.get("zdbId").status.toString().equals(Status.VALID.toString())){
@@ -262,11 +259,6 @@ class Record{
       flag.setColour(RecordFlag.Colour.YELLOW)
       flags.put(flag.errorCode, flag)
     }
-  }
-
-
-  void addValidation(String property, Status status) {
-    validation.put(property, status)
   }
 
 
@@ -344,7 +336,7 @@ class Record{
 
 
   private void validateMultifields(String namespace) {
-    multiFields.each { k, v -> v.validateContent(namespace) }
+    multiFields.each { String k, MultiField v -> v.validateContent(namespace, this) }
   }
 
 

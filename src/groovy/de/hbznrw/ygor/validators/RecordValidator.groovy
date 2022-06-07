@@ -2,6 +2,7 @@ package de.hbznrw.ygor.validators
 
 import de.hbznrw.ygor.enums.Status
 import de.hbznrw.ygor.tools.DateToolkit
+import org.codehaus.groovy.grails.plugins.web.taglib.ValidationTagLib
 import ygor.Record
 import ygor.RecordFlag
 import ygor.field.MultiField
@@ -9,6 +10,8 @@ import ygor.field.MultiField
 import java.time.LocalDate
 
 class RecordValidator {
+
+  static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
 
   static validateCoverage(Record record) {
 
@@ -20,12 +23,16 @@ class RecordValidator {
     // remove due to inconsistency in data length
     if (!(startDate.getPrioValues().size() == endDate.getPrioValues().size()
           == startVolume.getPrioValues().size() == endVolume.getPrioValues().size())){
-      record.addValidation("coverage", Status.REMOVE_FLAG)
-      // this has no effect currently
+      RecordFlag flag = new RecordFlag(Status.REMOVE_FLAG, VALIDATION_TAG_LIB.message(
+          code: 'statistic.export.field.removed.coverage').toString(), "statistic.export.field.removed.coverage",
+          record.multiFields.get("dateFirstIssueOnline").keyMapping, RecordFlag.ErrorCode.COVERAGE_DATA_REMOVED
+      )
+      flag.setColour(RecordFlag.Colour.YELLOW)
+      record.putFlag(flag)
     }
 
 
-    // remove due data error
+    // remove due to data error
     LocalDate startDateTime = DateToolkit.getAsLocalDate(startDate.getFirstPrioValue())
     LocalDate endDateTime = DateToolkit.getAsLocalDate(endDate.getFirstPrioValue())
     if (startDateTime != null && endDateTime != null){
@@ -61,21 +68,6 @@ class RecordValidator {
         record.addValidation("historyEvents", Status.HISTORYEVENT_IS_UNDEF)
     }
     */
-  }
-
-  static validatePublisherHistory(Record record) {
-    // startDate
-    // endDate
-    // status
-    // name
-
-    MultiField startDate = record.getMultiField("dateFirstIssueOnline")
-    MultiField endDate = record.getMultiField("dateLastIssueOnline")
-    MultiField startVolume = record.getMultiField("numFirstVolOnline")
-    MultiField endVolume = record.getMultiField("numLastIssueOnline")
-
-    MultiField publisherHistory = record.getMultiField("publisherHistory")
-    record.addValidation("publisherHistory", Status.UNDEFINED)
   }
 
 }

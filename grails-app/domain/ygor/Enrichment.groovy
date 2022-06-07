@@ -494,10 +494,10 @@ class Enrichment{
     FieldKeyMapping tippNameMapping = createMappingWithValue(ygorField, value)
     MultiField multiField = new MultiField(tippNameMapping)
     for (String recId in dataContainer.records){
-      Record record = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
-      multiField.validateContent(dataContainer.info.namespace_title_id)
-      record.addMultiField(multiField)
-      record.save(enrichmentFolder, resultHash)
+      Record rec = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
+      multiField.validateContent(dataContainer.info.namespace_title_id, rec)
+      rec.addMultiField(multiField)
+      rec.save(enrichmentFolder, resultHash)
     }
     return
   }

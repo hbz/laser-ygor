@@ -64,7 +64,7 @@ class KbartReader {
 
   KbartReader(def kbartFile, String originalFileName) throws Exception{
     init(kbartFile, originalFileName)
-    incorrectNumberOfColumns = VALIDATION_TAG_LIB.message(code: 'error.kbart.incorrectNumberOfColumns').toString()
+      incorrectNumberOfColumns = VALIDATION_TAG_LIB.message(code: 'error.kbart.incorrectNumberOfColumns').toString()
   }
 
 
