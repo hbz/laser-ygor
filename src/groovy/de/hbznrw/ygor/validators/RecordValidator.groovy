@@ -13,7 +13,7 @@ class RecordValidator {
 
   static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
 
-  static validateCoverage(Record record) {
+  def validateCoverage(Record record) {
 
     MultiField startDate = record.getMultiField("dateFirstIssueOnline")
     MultiField endDate = record.getMultiField("dateLastIssueOnline")
@@ -21,8 +21,20 @@ class RecordValidator {
     MultiField endVolume = record.getMultiField("numLastIssueOnline")
 
     // remove due to inconsistency in data length
-    if (!(startDate.getPrioValues().size() == endDate.getPrioValues().size()
-          == startVolume.getPrioValues().size() == endVolume.getPrioValues().size())){
+    boolean isValidCoverageConfiguration = true
+    int startDates = startDate.getPrioValues().minus("").size()
+    int startVolumes = startVolume.getPrioValues().minus("").size()
+    int endDates = endDate.getPrioValues().minus("").size()
+    int endVolumes = endVolume.getPrioValues().minus("").size()
+
+    if (endDates > startDates) isValidCoverageConfiguration = false
+    else if (endVolumes > startVolumes) isValidCoverageConfiguration = false
+    else if (startVolumes > startDates) isValidCoverageConfiguration = false
+    else if (endVolumes > endDates) isValidCoverageConfiguration = false
+    else if (startVolumes > 0 && startVolumes != startDates) isValidCoverageConfiguration = false
+    else if (endVolumes > 0 && endVolumes != endDates) isValidCoverageConfiguration = false
+
+    if (!isValidCoverageConfiguration){
       RecordFlag flag = new RecordFlag(Status.REMOVE_FLAG, VALIDATION_TAG_LIB.message(
           code: 'statistic.export.field.removed.coverage').toString(), "statistic.export.field.removed.coverage",
           record.multiFields.get("dateFirstIssueOnline").keyMapping, RecordFlag.ErrorCode.COVERAGE_DATA_REMOVED
@@ -30,7 +42,6 @@ class RecordValidator {
       flag.setColour(RecordFlag.Colour.YELLOW)
       record.putFlag(flag)
     }
-
 
     // remove due to data error
     LocalDate startDateTime = DateToolkit.getAsLocalDate(startDate.getFirstPrioValue())
@@ -52,7 +63,7 @@ class RecordValidator {
   }
 
 
-  static validateHistoryEvent(Record record) {
+  def validateHistoryEvent(Record record) {
     // date
     // from
     // to

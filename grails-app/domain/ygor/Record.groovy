@@ -31,6 +31,7 @@ class Record{
   static mapWith = "none" // disable persisting into database
 
   static ObjectMapper MAPPER = new ObjectMapper()
+  static RecordValidator RECORD_VALIDATOR = new RecordValidator()
   static List<String> GOKB_FIELD_ORDER = []
   static {
     MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
@@ -82,7 +83,6 @@ class Record{
       addIdentifier(id)
     }
     multiFields = [:]
-    validation = [:]
     duplicates = [:]
     historyEvents = []
     for (def ygorMapping in container.ygorMappings) {
@@ -219,8 +219,8 @@ class Record{
 
   void validateContent(String namespace, boolean isZdbIntegrated = false) {
     this.validateMultifields(namespace)
-    RecordValidator.validateCoverage(this)
-    RecordValidator.validateHistoryEvent(this)
+    RECORD_VALIDATOR.validateCoverage(this)
+    // RECORD_VALIDATOR.validateHistoryEvent(this) TODO?
 
     if (multiFields.get("publicationType").getFirstPrioValue().equals("Serial") &&
         !multiFields.get("zdbId").status.toString().equals(Status.VALID.toString())){
