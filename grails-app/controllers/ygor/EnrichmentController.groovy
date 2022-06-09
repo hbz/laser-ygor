@@ -153,6 +153,7 @@ class EnrichmentController implements ControllersHelper{
     }
     try {
       Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
+      enrichment.locale = request.locale
       enrichment.ygorFeedback = ygorFeedback
       enrichment.addFileAndFormat()
       enrichment.status = Enrichment.ProcessingState.PREPARE_1
@@ -212,7 +213,8 @@ class EnrichmentController implements ControllersHelper{
     enrichment.processingOptions = null
     enrichment.locale = request.locale
     try {
-      kbartReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale, ygorFeedback)
+      kbartReader = new KbartFromUrlReader(new URL(urlString), new File (enrichment.enrichmentFolder), request.locale,
+          ygorFeedback)
       kbartReader.checkHeader()
     }
     catch (Exception e) {
@@ -512,6 +514,7 @@ class EnrichmentController implements ControllersHelper{
     }
     enrichmentService.kbartReader = new KbartReader(file)
     Enrichment enrichment = Enrichment.fromCommonsMultipartFile(file)
+    enrichment.locale = request.locale
     String addOnly = params.get('addOnly').toString()                           // "true" or "false"
     def pmOptions = params.get('processOption')                                 // "kbart", "zdb", "ezb"
     boolean ignoreLastChanged = params.boolean('ignoreLastChanged')       // "true" or "false"

@@ -16,6 +16,7 @@ import de.hbznrw.ygor.tools.SessionToolkit
 import grails.util.Holders
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import org.apache.commons.lang.LocaleUtils
 import org.apache.commons.lang.StringUtils
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 import ygor.field.FieldKeyMapping
@@ -72,7 +73,7 @@ class Enrichment{
   String ygorVersion
   List<String> processingOptions
   String lastProcessingDate
-  String locale
+  Locale locale
   boolean addOnly
   boolean ignoreLastChanged
   boolean isZdbIntegrated
@@ -118,6 +119,7 @@ class Enrichment{
     transferredFile = null
     markDuplicates = false
     ignoreLastChanged = false
+    locale = Locale.default
     this.ygorFeedback = ygorFeedback
   }
 
@@ -353,7 +355,7 @@ class Enrichment{
     en.isZdbIntegrated = Boolean.valueOf(JsonToolkit.fromJson(rootNode, "configuration.isZdbIntegrated"))
     en.isEzbIntegrated = Boolean.valueOf(JsonToolkit.fromJson(rootNode, "configuration.isEzbIntegrated"))
     en.processingOptions = JsonToolkit.fromJson(rootNode, "configuration.processingOptions")
-    en.locale = JsonToolkit.fromJson(rootNode, "configuration.locale")
+    en.locale = LocaleUtils.toLocale(JsonToolkit.fromJson(rootNode, "configuration.locale"))
     if (null != JsonToolkit.fromJson(rootNode, "configuration.curatoryGroup")){
       en.dataContainer.curatoryGroup = JsonToolkit.fromJson(rootNode, "configuration.curatoryGroup")
     }
