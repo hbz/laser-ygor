@@ -217,9 +217,9 @@ class Record{
   }
 
 
-  void validateContent(String namespace, boolean isZdbIntegrated = false) {
+  void validateContent(String namespace, Locale locale, boolean isZdbIntegrated = false) {
     this.validateMultifields(namespace)
-    RECORD_VALIDATOR.validateCoverage(this)
+    RECORD_VALIDATOR.validateCoverage(this, locale)
     // RECORD_VALIDATOR.validateHistoryEvent(this) TODO?
 
     if (multiFields.get("publicationType").getFirstPrioValue().equals("Serial") &&

@@ -82,10 +82,10 @@ class DataContainer {
   }
 
 
-  void validateRecords() {
+  void validateRecords(Locale locale) {
     for (String recId in records) {
       Record record = Record.load(enrichmentFolder.concat(File.separator), resultHash, recId, mappingsContainer)
-      record.validateContent(info.namespace_title_id)
+      record.validateContent(info.namespace_title_id, locale)
       record.save(enrichmentFolder, resultHash)
     }
   }
