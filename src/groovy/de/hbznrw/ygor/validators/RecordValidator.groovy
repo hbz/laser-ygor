@@ -2,18 +2,20 @@ package de.hbznrw.ygor.validators
 
 import de.hbznrw.ygor.enums.Status
 import de.hbznrw.ygor.tools.DateToolkit
+
 import org.codehaus.groovy.grails.plugins.web.taglib.ValidationTagLib
+import org.springframework.context.MessageSource
 import ygor.Record
 import ygor.RecordFlag
 import ygor.field.MultiField
 
 import java.time.LocalDate
 
-class RecordValidator {
+class RecordValidator{
 
-  static ValidationTagLib VALIDATION_TAG_LIB = new ValidationTagLib()
+  MessageSource messageSource
 
-  def validateCoverage(Record record) {
+  def validateCoverage(Record record, Locale locale) {
 
     MultiField startDate = record.getMultiField("dateFirstIssueOnline")
     MultiField endDate = record.getMultiField("dateLastIssueOnline")
@@ -35,8 +37,8 @@ class RecordValidator {
     else if (endVolumes > 0 && endVolumes != endDates) isValidCoverageConfiguration = false
 
     if (!isValidCoverageConfiguration){
-      RecordFlag flag = new RecordFlag(Status.REMOVE_FLAG, VALIDATION_TAG_LIB.message(
-          code: 'statistic.export.field.removed.coverage').toString(), "statistic.export.field.removed.coverage",
+      RecordFlag flag = new RecordFlag(Status.REMOVE_FLAG,
+          getMessage('statistic.export.field.removed.coverage', locale), "statistic.export.field.removed.coverage",
           record.multiFields.get("dateFirstIssueOnline").keyMapping, RecordFlag.ErrorCode.COVERAGE_DATA_REMOVED
       )
       flag.setColour(RecordFlag.Colour.YELLOW)
@@ -79,6 +81,12 @@ class RecordValidator {
         record.addValidation("historyEvents", Status.HISTORYEVENT_IS_UNDEF)
     }
     */
+  }
+
+
+  def getMessage(String messageCode, Locale locale, String defaultMessage = null, Object[] args = null) {
+    // new ValidationTagLib().message(code: messageCode, locale: locale).toString()
+    messageSource.getMessage(messageCode, args, "Could not find message.", locale)
   }
 
 }
