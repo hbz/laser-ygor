@@ -2,9 +2,7 @@ package de.hbznrw.ygor.validators
 
 import de.hbznrw.ygor.enums.Status
 import de.hbznrw.ygor.tools.DateToolkit
-
-import org.codehaus.groovy.grails.plugins.web.taglib.ValidationTagLib
-import org.springframework.context.MessageSource
+import grails.util.Holders
 import ygor.Record
 import ygor.RecordFlag
 import ygor.field.MultiField
@@ -13,8 +11,7 @@ import java.time.LocalDate
 
 class RecordValidator{
 
-  MessageSource messageSource
-
+  def messageSource = Holders.grailsApplication.mainContext.getBean 'messageSource'
   def validateCoverage(Record record, Locale locale) {
 
     MultiField startDate = record.getMultiField("dateFirstIssueOnline")
@@ -38,7 +35,8 @@ class RecordValidator{
 
     if (!isValidCoverageConfiguration){
       RecordFlag flag = new RecordFlag(Status.REMOVE_FLAG,
-          getMessage('statistic.export.field.removed.coverage', locale), "statistic.export.field.removed.coverage",
+          messageSource.getMessage('statistic.export.field.removed.coverage', null, locale),
+          "statistic.export.field.removed.coverage",
           record.multiFields.get("dateFirstIssueOnline").keyMapping, RecordFlag.ErrorCode.COVERAGE_DATA_REMOVED
       )
       flag.setColour(RecordFlag.Colour.YELLOW)
@@ -52,7 +50,8 @@ class RecordValidator{
       if (startDateTime.isAfter(endDateTime)){
         RecordFlag flag = record.getFlagWithErrorCode(RecordFlag.ErrorCode.ISSUE_ONLINE_DATES_ORDER)
         if (flag == null){
-          flag = new RecordFlag(Status.INVALID, "${endDate.keyMapping.ygorKey} ${endDate.getFirstPrioValue()} %s",
+          flag = new RecordFlag(Status.INVALID,
+              messageSource.getMessage('record.date.order', null, locale),
               'record.date.order', endDate.keyMapping, RecordFlag.ErrorCode.ISSUE_ONLINE_DATES_ORDER)
         }
         flag.setColour(RecordFlag.Colour.RED)
@@ -81,12 +80,6 @@ class RecordValidator{
         record.addValidation("historyEvents", Status.HISTORYEVENT_IS_UNDEF)
     }
     */
-  }
-
-
-  def getMessage(String messageCode, Locale locale, String defaultMessage = null, Object[] args = null) {
-    // new ValidationTagLib().message(code: messageCode, locale: locale).toString()
-    messageSource.getMessage(messageCode, args, "Could not find message.", locale)
   }
 
 }

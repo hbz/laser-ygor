@@ -31,7 +31,6 @@ class Record{
   static mapWith = "none" // disable persisting into database
 
   static ObjectMapper MAPPER = new ObjectMapper()
-  static RecordValidator RECORD_VALIDATOR = new RecordValidator()
   static List<String> GOKB_FIELD_ORDER = []
   static {
     MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
@@ -217,15 +216,15 @@ class Record{
   }
 
 
-  void validateContent(String namespace, Locale locale, boolean isZdbIntegrated = false) {
+  void validateContent(String namespace, Locale locale, RecordValidator recordValidator, boolean isZdbIntegrated = false) {
     this.validateMultifields(namespace)
-    RECORD_VALIDATOR.validateCoverage(this, locale)
+    recordValidator.validateCoverage(this, locale)
     // RECORD_VALIDATOR.validateHistoryEvent(this) TODO?
 
     if (multiFields.get("publicationType").getFirstPrioValue().equals("Serial") &&
         !multiFields.get("zdbId").status.toString().equals(Status.VALID.toString())){
       RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.zdbmatch',
-          null, "ZDB match", LCH.getLocale()), 'statistic.edit.record.zdbmatch',
+          null, "ZDB match", locale), 'statistic.edit.record.zdbmatch',
           multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.ZDB_MATCH)
       if (!isValid() && isZdbIntegrated){
         flag.setColour(RecordFlag.Colour.RED)
@@ -238,7 +237,7 @@ class Record{
 
     if (!hasValidPublicationType()){
       RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.invalidPublicationType',
-          null, "Invalid publication_type", LCH.getLocale()), 'statistic.edit.record.invalidPublicationType',
+          null, "Invalid publication_type", locale), 'statistic.edit.record.invalidPublicationType',
           multiFields.get("publicationType").keyMapping, RecordFlag.ErrorCode.INVALID_PUBLICATION_TYPE)
       flag.setColour(RecordFlag.Colour.RED)
       flags.put(flag.errorCode, flag)
@@ -246,7 +245,7 @@ class Record{
 
     if (!duplicates.isEmpty()){
       RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.duplicateIdentifiers',
-          null, "Duplicate identifiers", LCH.getLocale()), 'statistic.edit.record.duplicateIdentifiers',
+          null, "Duplicate identifiers", locale), 'statistic.edit.record.duplicateIdentifiers',
           multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.DUPLICATE_IDENTIFIERS)
       flag.setColour(RecordFlag.Colour.YELLOW)
       flags.put(flag.errorCode, flag)
@@ -254,7 +253,7 @@ class Record{
 
     if (publicationType.equals("serial") && zdbIntegrationUrl == null){
       RecordFlag flag = new RecordFlag(Status.WARNING, messageSource.getMessage('statistic.edit.record.missingZdbAlignment',
-          null, "Missing ZDB alignment", LCH.getLocale()), 'statistic.edit.record.missingZdbAlignment',
+          null, "Missing ZDB alignment", locale), 'statistic.edit.record.missingZdbAlignment',
           multiFields.get("zdbId").keyMapping, RecordFlag.ErrorCode.MISSING_ZDB_ALIGNMENT)
       flag.setColour(RecordFlag.Colour.YELLOW)
       flags.put(flag.errorCode, flag)

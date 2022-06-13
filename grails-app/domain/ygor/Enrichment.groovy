@@ -315,7 +315,7 @@ class Enrichment{
         result.append("\"oid\":\"").append(dataContainer.pkgHeader?.nominalPlatform.oid).append("\"")
       result.append("},")
     }
-    result.append("\"locale\":\"").append(locale).append("\",")
+    result.append("\"locale\":\"").append(locale.toString()).append("\",")
     result.append("\"processingOptions\":").append(JsonToolkit.listToJson(processingOptions)).append(",")
     result.append("\"mappingsContainer\":")
     result.append(JsonToolkit.toJson(mappingsContainer))
@@ -530,7 +530,7 @@ class Enrichment{
     for (String recId in dataContainer.records){
       Record record = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
       record.normalize(namespace)
-      record.validateContent(namespace, locale)
+      record.validateContent(namespace, locale, dataContainer.recordValidator)
       classifyRecord(record)
       record.save(enrichmentFolder, resultHash)
     }
