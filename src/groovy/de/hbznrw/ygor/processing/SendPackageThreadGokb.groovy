@@ -161,7 +161,10 @@ class SendPackageThreadGokb extends UploadThreadGokb{
           count = Double.valueOf(countString) / 100.0 * total
         }
       }
-      log.debug("Count: $count . Process unfinished.")
+      if (count > lastLoggedCount){
+        log.debug("Enrichment: $enrichment.originHash . Count: $count . Process unfinished.")
+        lastLoggedCount = count
+      }
     }
   }
 
@@ -265,7 +268,7 @@ class SendPackageThreadGokb extends UploadThreadGokb{
         result.put('responseStatus', 'authenticationError')
       }
     }
-    log.debug("KB responseStatus : ${result.get('responseStatus')}")
+    // log.debug("KB responseStatus : ${result.get('responseStatus')}")
     result
   }
 
