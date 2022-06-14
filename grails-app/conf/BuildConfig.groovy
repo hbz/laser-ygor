@@ -59,6 +59,7 @@ grails.project.dependency.resolution = {
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.8'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     compile 'commons-validator:commons-validator:1.6'
+    compile 'com.github.miachm.sods:SODS:1.4.0'
   }
 
   plugins {
