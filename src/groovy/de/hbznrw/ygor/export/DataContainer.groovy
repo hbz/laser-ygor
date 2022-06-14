@@ -7,6 +7,7 @@ import de.hbznrw.ygor.export.structure.Meta
 import de.hbznrw.ygor.export.structure.PackageHeader
 import de.hbznrw.ygor.tools.JsonToolkit
 import de.hbznrw.ygor.tools.RecordFileFilter
+import de.hbznrw.ygor.validators.RecordValidator
 import groovy.util.logging.Log4j
 import ygor.Record
 import ygor.field.MappingsContainer
@@ -32,6 +33,7 @@ class DataContainer {
   String enrichmentFolder
   String resultHash
   MappingsContainer mappingsContainer
+  RecordValidator recordValidator
 
 
   DataContainer(File sessionFolder, String enrichmentFolder, String resultHash, MappingsContainer mappingsContainer) {
@@ -54,6 +56,7 @@ class DataContainer {
     recordsPerId = [:]
     titles = new ArrayNode(NODE_FACTORY)
     tipps = new ArrayNode(NODE_FACTORY)
+    recordValidator = new RecordValidator()
   }
 
 
@@ -82,10 +85,10 @@ class DataContainer {
   }
 
 
-  void validateRecords() {
+  void validateRecords(Locale locale) {
     for (String recId in records) {
       Record record = Record.load(enrichmentFolder.concat(File.separator), resultHash, recId, mappingsContainer)
-      record.validateContent(info.namespace_title_id)
+      record.validateContent(info.namespace_title_id, locale, recordValidator)
       record.save(enrichmentFolder, resultHash)
     }
   }

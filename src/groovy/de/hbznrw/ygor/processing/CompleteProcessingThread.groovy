@@ -77,7 +77,8 @@ class CompleteProcessingThread extends Thread {
           URL url = urlsIterator.previous()
           ygorFeedback.processedData.put("url", url.toString())
           try {
-            kbartReader = enrichmentService.kbartReader = new KbartFromUrlReader(url, new File(sessionFolder), locale, ygorFeedback)
+            kbartReader = enrichmentService.kbartReader = new KbartFromUrlReader(url, new File(sessionFolder), locale,
+                ygorFeedback)
           }
           catch (Exception e) {
             ygorFeedback.ygorProcessingStatus = YgorFeedback.YgorProcessingStatus.ERROR

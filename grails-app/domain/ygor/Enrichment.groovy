@@ -16,6 +16,7 @@ import de.hbznrw.ygor.tools.SessionToolkit
 import grails.util.Holders
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import org.apache.commons.lang.LocaleUtils
 import org.apache.commons.lang.StringUtils
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 import ygor.field.FieldKeyMapping
@@ -72,7 +73,7 @@ class Enrichment{
   String ygorVersion
   List<String> processingOptions
   String lastProcessingDate
-  String locale
+  Locale locale
   boolean addOnly
   boolean ignoreLastChanged
   boolean isZdbIntegrated
@@ -118,6 +119,7 @@ class Enrichment{
     transferredFile = null
     markDuplicates = false
     ignoreLastChanged = false
+    locale = Locale.default
     this.ygorFeedback = ygorFeedback
   }
 
@@ -211,7 +213,7 @@ class Enrichment{
   }
 
   void validateContainer(){
-    dataContainer.validateRecords()
+    dataContainer.validateRecords(locale)
   }
 
 
@@ -313,7 +315,7 @@ class Enrichment{
         result.append("\"oid\":\"").append(dataContainer.pkgHeader?.nominalPlatform.oid).append("\"")
       result.append("},")
     }
-    result.append("\"locale\":\"").append(locale).append("\",")
+    result.append("\"locale\":\"").append(locale.toString()).append("\",")
     result.append("\"processingOptions\":").append(JsonToolkit.listToJson(processingOptions)).append(",")
     result.append("\"mappingsContainer\":")
     result.append(JsonToolkit.toJson(mappingsContainer))
@@ -353,7 +355,7 @@ class Enrichment{
     en.isZdbIntegrated = Boolean.valueOf(JsonToolkit.fromJson(rootNode, "configuration.isZdbIntegrated"))
     en.isEzbIntegrated = Boolean.valueOf(JsonToolkit.fromJson(rootNode, "configuration.isEzbIntegrated"))
     en.processingOptions = JsonToolkit.fromJson(rootNode, "configuration.processingOptions")
-    en.locale = JsonToolkit.fromJson(rootNode, "configuration.locale")
+    en.locale = LocaleUtils.toLocale(JsonToolkit.fromJson(rootNode, "configuration.locale"))
     if (null != JsonToolkit.fromJson(rootNode, "configuration.curatoryGroup")){
       en.dataContainer.curatoryGroup = JsonToolkit.fromJson(rootNode, "configuration.curatoryGroup")
     }
@@ -494,10 +496,10 @@ class Enrichment{
     FieldKeyMapping tippNameMapping = createMappingWithValue(ygorField, value)
     MultiField multiField = new MultiField(tippNameMapping)
     for (String recId in dataContainer.records){
-      Record record = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
-      multiField.validateContent(dataContainer.info.namespace_title_id)
-      record.addMultiField(multiField)
-      record.save(enrichmentFolder, resultHash)
+      Record rec = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
+      multiField.validateContent(dataContainer.info.namespace_title_id, rec)
+      rec.addMultiField(multiField)
+      rec.save(enrichmentFolder, resultHash)
     }
     return
   }
@@ -528,7 +530,7 @@ class Enrichment{
     for (String recId in dataContainer.records){
       Record record = Record.load(enrichmentFolder, resultHash, recId, mappingsContainer)
       record.normalize(namespace)
-      record.validateContent(namespace)
+      record.validateContent(namespace, locale, dataContainer.recordValidator)
       classifyRecord(record)
       record.save(enrichmentFolder, resultHash)
     }

@@ -18,35 +18,7 @@
                         </g:if>
                     </h3>
                 </div>
-                <g:if test="${record.multiFields.get("publicationType").getFirstPrioValue().equals("Serial") &&
-                        !record.multiFields.get("zdbId").status.toString().equals(de.hbznrw.ygor.enums.Status.VALID.toString())}">
-                    <g:if test="${!record.isValid() && zdbEnrichmentActive == true}">
-                        <div class="panel-heading-red">
-                    </g:if>
-                    <g:else>
-                        <div class="panel-heading-yellow">
-                    </g:else>
-                            <h3 class="panel-title"><g:message code="statistic.edit.record.zdbmatch"/> : <g:message
-                                    code="${record.multiFields.get("zdbId").status}"/></h3>
-                        </div>
-                </g:if>
-                <g:if test="${!record.hasValidPublicationType()}">
-                    <div class="panel-heading-red">
-                        <h3 class="panel-title"><g:message code="statistic.edit.record.invalidPublicationType"/></h3>
-                    </div>
-                </g:if>
-                <g:if test="${!record.duplicates.isEmpty()}">
-                    <div class="panel-heading-yellow">
-                        <h3 class="panel-title"><g:message code="statistic.edit.record.duplicateidentifiers"/>
-                        <g:each in="${record.duplicates}" var="rec"> : ${rec.key}</g:each>
-                    </div>
-                </g:if>
                 <g:render template="flags" collection="${record.flags.values()}" var="flag"/>
-                <g:if test="${(record.publicationType.equals("serial") && record.zdbIntegrationUrl == null)}">
-                    <div class="panel-heading-yellow">
-                        <h3 class="panel-title"><g:message code="statistic.edit.record.missingZdbAlignment"/>
-                    </div>
-                </g:if>
                 <div class="statistics-data">
                     <table class="statistics-details" id="edit-table">
                         <thead>
