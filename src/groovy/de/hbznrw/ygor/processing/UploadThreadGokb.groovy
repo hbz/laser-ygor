@@ -14,6 +14,7 @@ abstract class UploadThreadGokb extends Thread{
   int total = 0
   List result
   int count = 0
+  int lastLoggedCount = -1
   String locale
   Status status
   YgorFeedback ygorFeedback
